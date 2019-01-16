@@ -1,0 +1,12 @@
+apps:
+  - script   : ./index.js
+    name     : 'mlfauth'
+    instances: 1
+    exec_mode: cluster
+  - script : ./worker.js
+    name   : 'worker'
+    watch  : true
+    env    :
+      NODE_ENV: development
+    env_production:
+      NODE_ENV: production
