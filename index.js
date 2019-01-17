@@ -7,29 +7,24 @@ app.use(cors());
 
 const nano = require('nano')(process.env.COUCHDB);
 
-//create our databases
-nano.db.use(process.env.COUCHDB)
-app.userdb = nano.db.use(process.env.USER_DB);
+//create our database
 try{
-  //const info = nano.db.get('test');
-  //console.log(info); 
-  //nano.db.create(process.env.USER_DB);
-  
-  app.userdb.createIndex({
-    index: {
-      fields: ['username'],
-    }
-  });
-
-  app.userdb.createIndex({
-    index: {
-      fields: ['email'],
-    }
-  });
+  nano.db.create(process.env.USER_DB).then((body) => {
+    console.log('database alice created!');
+    app.userdb.createIndex({
+      index: {
+        fields: ['email'],
+      }
+    });
+  })
 }
-catch(e) {
+catch(e){
   console.log('Preping Database: ', e.message);
 }
+
+
+//create our databases
+app.userdb = nano.db.use();
 
 app.use(bodyParser.urlencoded({ extended : false }) );
 app.use(bodyParser.json());
