@@ -8,8 +8,8 @@ app.use(cors());
 const nano = require('nano')(process.env.COUCHDB);
 
 //create our database
-try{
-  nano.db.create(process.env.USER_DB).then((body) => {
+nano.db.create(process.env.USER_DB)
+  .then((body) => {
     console.log('database alice created!');
     app.userdb.createIndex({
       index: {
@@ -17,14 +17,13 @@ try{
       }
     });
   })
-}
-catch(e){
-  console.log('Preping Database: ', e.message);
-}
+  .catch(err => {
+    console.log('Preping Database: ', err.message);
+  });
 
 
 //create our databases
-app.userdb = nano.db.use();
+app.userdb = nano.db.use(process.env.USER_DB);
 
 app.use(bodyParser.urlencoded({ extended : false }) );
 app.use(bodyParser.json());
