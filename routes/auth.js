@@ -111,7 +111,7 @@ router.post('/renewJWT', [
 
 
     //Need to double check if auto refresh is ok for this user, or user has logout 
-    const userdoc = await userDao.getUserByUsername(payload.user, req.app.userdb);
+    const userdoc = await userDao.getUser(payload.user, req.app.userdb);
     console.log('UserDOC: ', payload.user, userdoc);
 
     //check if we still have same token code
@@ -180,7 +180,7 @@ router.post('/forgotpassword', [
       userDoc = await userDao.getUserByEmail(id, req.app.userdb);
     }
     else {
-      userDoc = await userDao.getUserByUsername(id, req.app.userdb);
+      userDoc = await userDao.getUser(id, req.app.userdb);
     }
   }
   console.log('Forgot password loaded user::: ', userDoc);
@@ -267,7 +267,7 @@ router.post('/logout', [
 
 
     //Need to double check if auto refresh is ok for this user, or user has logout 
-    const rec = await userDao.getUserByUsername(payload.user, req.app.userdb);
+    const rec = await userDao.getUser(payload.user, req.app.userdb);
     await userDao.saveUser({...rec, ...{loginCode: Date.now()}}, req.app.userdb);
     //lets save user with new user code, this will prevent future refresh
     return res.json({status: true, action: 'logout'});

@@ -12,11 +12,11 @@ userDao.saveUserBasic = async (username, email, password, userdb) => {
   console.log('Pass:', password);
   const hashPass =  await bcrypt.hash(password, 10);
 
-  const id = uuidv1();
+  //const id = uuidv1();
 
   const user = {
-    _id: id,
-    username: username,
+    _id: username,
+    // username: username,
     email: email,
     loginCode: Date.now(),
     strategies: {
@@ -45,8 +45,18 @@ userDao.saveUser = async (user, userdb) => {
   } 
 }
 
-userDao.getUser = async (id) =>{
-  return false;
+userDao.getUser = async (id, userdb) =>{
+  try{
+    const res = await userdb.get(id);
+    if(res.docs.length > 0)
+      return res.docs[0];
+
+    return null;
+  }
+  catch(e) {
+    console.log('GetUserById Error', e.message);
+    return null;
+  }
 }
 
 
@@ -72,30 +82,9 @@ userDao.getUserByEmail = async (email, userdb) => {
   }
 }
 
-userDao.getUserByUsername = async (username, userdb) => {
-  try{
-    const q = {
-      selector: {
-        username: {'$eq': username}
-      },
-      limit: 1
-    }
-
-    const res = await userdb.find(q);
-    //console.log('GetUserByUsername: ',res.docs[0], res);
-    if(res.docs.length > 0)
-      return res.docs[0];
-
-    return null;
-  }
-  catch(e) {
-    console.log('GetUserByUsername Error', e.message);
-    return null;
-  }
-}
 
 userDao.uniqueUsername = async (username, userdb) => {
-  return ((await userDao.getUserByUsername(username, userdb)) == null);
+  return ((await userDao.getUser(username, userdb)) == null);
 }
 
 userDao.uniqueEmail = async (email, userdb) => {
@@ -109,7 +98,7 @@ userDao.authenticateLocal = async (username, email, password, userdb) => {
   if(username){
     console.log('logging in using username', username);
     // see if username exists
-    user = await userDao.getUserByUsername(username, userdb);
+    user = await userDao.getUser(username, userdb);
     if(!user)
       return { success: false, errors: [{
         location: 'database',
