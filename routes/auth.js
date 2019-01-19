@@ -84,7 +84,7 @@ router.post('/login', [
 
   return res.json({ token: token,
                     expires: payload.exp, 
-                    username: auth.user.username,
+                    username: auth.user._id,
                     email: auth.user.email });
    
 });
