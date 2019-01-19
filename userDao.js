@@ -48,15 +48,12 @@ userDao.saveUser = async (user, userdb) => {
 userDao.getUser = async (id, userdb) =>{
   try{
     
-    const res = await userdb.get(id);
-    console.log(id, res);
-    if(res.docs.length > 0)
-      return res.docs[0];
-
-    return null;
+    const user = await userdb.get(id);
+    console.log(id, user);
+    return user;
   }
   catch(e) {
-    console.log('GetUser Error', e.message);
+    console.log('GetUser Error: ', e.message);
     return null;
   }
 }
