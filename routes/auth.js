@@ -23,9 +23,9 @@ function validateEmail(email) {
 
 
 function createNewToken(user){
-  return  jwt.sign({ user : user.username,
+  return  jwt.sign({ user : user._id,
     code: user.loginCode,
-    shortExp: Math.floor(Date.now() / 1000) + (60 * 60),
+    shortExp: Math.floor(Date.now() / 1000) + (60 * 60), //TODO: use settings lenth
     email: user.email },
     process.env.TOKEN_SECRET,{ expiresIn: process.env.TOKEN_LENGTH});
 }
@@ -274,7 +274,7 @@ router.post('/logout', [
 
   }
   catch(e){
-    console.log('Token Verify Error:::: ', e.message)
+    console.log('Logout Error:::: ', e.message)
     return res.status(422).json({ errors: [{
       location: 'token',
       msg: 'Invalid token, or token has expired. Please relogin.'
