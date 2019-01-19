@@ -85,6 +85,7 @@ router.post('/login', [
   return res.json({ token: token,
                     expires: payload.exp, 
                     username: auth.user._id,
+                    user: auth.user._id,
                     email: auth.user.email });
    
 });
@@ -130,7 +131,8 @@ router.post('/renewJWT', [
 
     return res.json({ token: newtoken,
                       expires: newpayload.exp, 
-                      username: userdoc.username,
+                      username: userdoc._id, // TODO: remove in future
+                      user: userdoc._id,
                       email: userdoc.email });
 
   }
