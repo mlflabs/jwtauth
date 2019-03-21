@@ -90,6 +90,68 @@ userDao.uniqueEmail = async (email, userdb) => {
   return ((await userDao.getUserByEmail(email, userdb)) == null);
 }
 
+userDao.uniqueChannel = async (channel, userdb) => {
+  try{
+    const c = await userdb.get('channel|'+channel);
+    return false;
+  }
+  catch(e) {
+    // console.log('GetUser Error: ', e.message);
+    return true;
+  }
+}
+
+userDao.saveChannel = async (user, channel, read, write, admin, userdb) => {
+  try{
+    console.log('Save channel: ', channel );
+    const res = await userdb.insert({ _id: 'channel|'+channel, creator: user._id });
+    console.log(res);
+    if(res.ok != true)
+      return false;
+
+    //now edit user add channel to its meta access
+    if(!user.meta_access) user.meta_access = {};
+    if(!user.meta_access.channels) user.meta_access.channels = {};
+
+    user.meta_access.channels[channel] = { r: read, w: write, a: admin };
+    console.log('USER');
+    console.log(user);
+    const res2 = await userdb.insert(user)
+    
+    if(res2.ok) return true;
+    return false;
+  
+  }
+  catch(e){
+    console.log('Save Channel Error: ', e);
+    return false;
+  } 
+}
+
+userDao.saveUserRequest = async (user, data) => {
+  try{
+
+    const unique = uuidv1();
+
+    const doc = {
+     ... { _id: 'request|' + user + '|' + unique },
+     ... data
+    }
+
+    const res = await userdb.insert(doc)
+
+    if(res.ok == true)
+      return true;
+    return false;
+  
+  }
+  catch(e){
+    console.log('Save Channel Error: ', e);
+    return false;
+  } 
+}
+
+
 
 userDao.authenticateLocal = async (username, email, password, userdb) => {
   //console.log('Authenticating: ', username, email, password);
