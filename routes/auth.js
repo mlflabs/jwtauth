@@ -303,13 +303,13 @@ router.post('/sharechannel', [
     console.log(friend);
 
     //make a request to share, channel will be added once the friend accepts it
-    const rights = {r: (r == true), w: (w == true), a: (a == true)}
+    const rights2 = {r: (r == true), w: (w == true), a: (a == true)}
     resRequest = userDao.saveUserRequest(friend._id,
       { type: 'sharechannel', 
         host: userdoc._id,
         date: Date.now(), 
         channel: channel, 
-        right: rights })
+        right: rights2 })
 
 
     if(!resRequest){
