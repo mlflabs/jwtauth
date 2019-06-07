@@ -25,6 +25,7 @@ function validateEmail(email) {
 function createNewToken(user, app){
   return  jwt.sign({ user : user._id,
     app: app,
+    role: user.role,
     code: user.loginCode,
     shortExp: Math.floor(Date.now() / 1000) + (60 * 60), //TODO: use settings lenth
     email: user.email },

@@ -10,7 +10,7 @@ const nano = require('nano')(process.env.COUCHDB);
 //create our database
 nano.db.create(process.env.USER_DB)
   .then((body) => {
-    console.log('database alice created!');
+    console.log('database ' + process.env.USER_DB + ' created!');
     app.userdb.createIndex({
       index: {
         fields: ['email'],
@@ -38,7 +38,7 @@ app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.json({ error : err });
 });
-
+ 
 app.get('/', (req, res, next) => {
  res.send('MLF Auth System');
 });

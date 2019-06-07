@@ -19,6 +19,7 @@ userDao.saveUserBasic = async (username, email, password, userdb) => {
     // username: username,
     email: email,
     loginCode: Date.now(),
+    role: 'user',
     strategies: {
       basic: {
         password: hashPass
