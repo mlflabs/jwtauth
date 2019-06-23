@@ -15,7 +15,7 @@ userDao.saveUserBasic = async (username, email, password, userdb) => {
   //const id = uuidv1();
 
   const user = {
-    _id: username,
+    _id: username.toString(),
     // username: username,
     email: email,
     loginCode: Date.now(),
