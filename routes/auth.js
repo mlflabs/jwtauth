@@ -24,7 +24,6 @@ function validateEmail(email) {
 
 function createNewToken(user, app){
   return  jwt.sign({ 
-    user : user._id,
     id : user._id,
     username: user.username,
     app: app,
