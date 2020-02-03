@@ -25,6 +25,7 @@ function validateEmail(email) {
 function createNewToken(user, app){
   return  jwt.sign({ 
     user : user._id,
+    id : user._id,
     username: user.username,
     app: app,
     role: user.role,
@@ -92,7 +93,7 @@ router.post('/login', [
                     app: app,
                     expires: payload.exp, 
                     username: auth.user.username,
-                    user: auth.user._id,
+                    id: auth.user._id,
                     email: auth.user.email });
    
 });
@@ -140,7 +141,7 @@ router.post('/renewJWT', [
                       app: payload.app,
                       expires: newpayload.exp, 
                       username: userdoc.username, // TODO: remove in future
-                      user: userdoc._id,
+                      id: userdoc._id,
                       email: userdoc.email });
 
   }

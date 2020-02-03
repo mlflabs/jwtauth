@@ -17,9 +17,13 @@ userDao.saveUserBasic = async (username, email, password, userdb) => {
   let id;
   //while short id not unique
   unique = false;
+  let tries = 0
   while(!unique) {
-    id = shortid.generate();
+    const length = 4 + Math.floor(tries/5)
+    id = shortid.generate().substring(0,length);
     unique = userDao.uniqueId(id, userdb);
+
+    tries++;
   }
 
 

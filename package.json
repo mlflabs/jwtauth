@@ -9,7 +9,7 @@
   "author": "Mike",
   "license": "ISC",
   "dependencies": {
-    "bcrypt": "^3.0.2",
+    "bcrypt": "^3.0.7",
     "body-parser": "^1.18.3",
     "cloudant-envoy": "^0.4.4",
     "cors": "^2.8.5",
