@@ -38,9 +38,7 @@ function createNewToken(user, app){
 // *** Login
 router.post('/login', [
   oneOf([
-    body('username').trim().isLength({ min: 3 }).trim().escape(),
     body('id').trim().isLength({ min: 3 }).trim().escape(),
-    body('email').isEmail().normalizeEmail(),
   ], 'Valid username or password requried'),
   body('app', 'Valid app id is required').isLength({ min: 2 }).trim().escape(),
   body('password', 'Valid password is required').trim().isLength({ min: 3 }),
@@ -52,9 +50,9 @@ router.post('/login', [
   }
 
   //console.log('Login Res body: ', req.body);
-  let username = req.body.username;
   let password = req.body.password;
-  let email = req.body.email;
+  let username;
+  let email;
   let app = req.body.app;
   const id = req.body.id;
 
