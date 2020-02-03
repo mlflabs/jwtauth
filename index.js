@@ -11,11 +11,27 @@ const nano = require('nano')(process.env.COUCHDB);
 nano.db.create(process.env.USER_DB)
   .then((body) => {
     console.log('database ' + process.env.USER_DB + ' created!');
-    app.userdb.createIndex({
-      index: {
-        fields: ['email'],
-      }
-    });
+    try{
+      app.userdb.createIndex({
+        index: {
+          fields: ['email'],
+        }
+      });
+    }
+    catch(e){
+      console.log('Preping Database: ', err.message);
+    }
+    try{
+      app.userdb.createIndex({
+        index: {
+          fields: ['username'],
+        }
+      });
+    }
+    catch(e){
+      console.log('Preping Database: ', err.message);
+    }
+    
   })
   .catch(err => {
     console.log('Preping Database: ', err.message);

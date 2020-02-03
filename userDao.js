@@ -1,6 +1,7 @@
 const bcrypt = require('bcrypt');
 const uuidv1 = require('uuid/v1');
 const userDao = {};
+const shortid = require('shortid');
 
 
 userDao.encryptPassword = async (password) => {
@@ -13,10 +14,18 @@ userDao.saveUserBasic = async (username, email, password, userdb) => {
   const hashPass =  await bcrypt.hash(password, 10);
 
   //const id = uuidv1();
+  let id;
+  //while short id not unique
+  unique = false;
+  while(!unique) {
+    id = shortid.generate();
+    unique = userDao.uniqueId(id, userdb);
+  }
+
 
   const user = {
-    _id: username.toString(),
-    // username: username,
+    _id: id.toString(),
+    username: username.toString(),
     email: email,
     loginCode: Date.now(),
     role: 'user',
@@ -59,6 +68,27 @@ userDao.getUser = async (id, userdb) =>{
   }
 }
 
+userDao.getUserByUsername = async (username, userdb) => {
+  try{
+    const q = {
+      selector: {
+        username: {'$eq': username}
+      },
+      limit: 1
+    }
+
+    const res = await userdb.find(q);
+    //console.log('GetUserByEmail: ',res.docs[0], res);
+    if(res.docs.length > 0)
+      return res.docs[0];
+
+    return null;
+  }
+  catch(e) {
+    console.log('GetUserByEmail Error', e.message);
+    return null;
+  }
+}
 
 userDao.getUserByEmail = async (email, userdb) => {
   try{
@@ -84,7 +114,11 @@ userDao.getUserByEmail = async (email, userdb) => {
 
 
 userDao.uniqueUsername = async (username, userdb) => {
-  return ((await userDao.getUser(username, userdb)) == null);
+  return ((await userDao.getUserByUsername(username, userdb)) == null);
+}
+
+userDao.uniqueId = async (id, userdb) => {
+  return ((await userDao.getUser(id, userdb)) == null);
 }
 
 userDao.uniqueEmail = async (email, userdb) => {
@@ -160,7 +194,7 @@ userDao.authenticateLocal = async (username, email, password, userdb) => {
   if(username){
     console.log('logging in using username', username);
     // see if username exists
-    user = await userDao.getUser(username, userdb);
+    user = await userDao.getUserByUsername(username, userdb);
     if(!user)
       return { success: false, errors: [{
         location: 'database',

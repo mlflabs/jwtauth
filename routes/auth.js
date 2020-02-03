@@ -23,7 +23,9 @@ function validateEmail(email) {
 
 
 function createNewToken(user, app){
-  return  jwt.sign({ user : user._id,
+  return  jwt.sign({ 
+    user : user._id,
+    username: user.username,
     app: app,
     role: user.role,
     code: user.loginCode,
@@ -89,7 +91,7 @@ router.post('/login', [
   return res.json({ token: token,
                     app: app,
                     expires: payload.exp, 
-                    username: auth.user._id,
+                    username: auth.user.username,
                     user: auth.user._id,
                     email: auth.user.email });
    
@@ -137,7 +139,7 @@ router.post('/renewJWT', [
     return res.json({ token: newtoken,
                       app: payload.app,
                       expires: newpayload.exp, 
-                      username: userdoc._id, // TODO: remove in future
+                      username: userdoc.username, // TODO: remove in future
                       user: userdoc._id,
                       email: userdoc.email });
 
@@ -289,7 +291,7 @@ router.post('/sharechannel', [
       friend = userDao.getUserByEmail(id, req.app.userdb);
     }
     else {
-      friend = userDao.getUser(id, req.app.userdb);
+      friend = userDao.getUserByUsername(id, req.app.userdb);
     }
 
     if(!friend){
@@ -357,7 +359,7 @@ router.post('/forgotpassword', [
       userDoc = await userDao.getUserByEmail(id, req.app.userdb);
     }
     else {
-      userDoc = await userDao.getUser(id, req.app.userdb);
+      userDoc = await userDao.getUserByUsername(id, req.app.userdb);
     }
   }
   console.log('Forgot password loaded user::: ', userDoc);
