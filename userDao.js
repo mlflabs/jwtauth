@@ -1,28 +1,23 @@
 const bcrypt = require('bcrypt');
-const uuidv1 = require('uuid/v1');
-const userDao = {};
-const shortid = require('shortid');
 
+const userDao = {};
+const app = require('./index');
+const shortid = require('shortid');
 
 userDao.encryptPassword = async (password) => {
   return await bcrypt.hash(password, 10);
 }
 
 userDao.saveUserBasic = async (username, email, password, userdb) => {
-  
-  console.log('Pass:', password);
-  const hashPass =  await bcrypt.hash(password, 10);
 
-  //const id = uuidv1();
+  const hashPass =  await bcrypt.hash(password, 10);
   let id;
-  //while short id not unique
   unique = false;
   let tries = 0
   while(!unique) {
     const length = 4 + Math.floor(tries/5)
     id = shortid.generate().substring(0,length);
     unique = userDao.uniqueId(id, userdb);
-
     tries++;
   }
 
@@ -40,14 +35,15 @@ userDao.saveUserBasic = async (username, email, password, userdb) => {
     }
   };
 
-  return await userDao.saveUser(user, userdb)
+  const userres = await userDao.saveUser(user, userdb);
+
+  return userres.ok;
 }
 
 userDao.saveUser = async (user, userdb) => {
   try{
     console.log('Save user: ', user);
     const res = await userdb.insert(user);
-    console.log(res);
     if(res.ok == true)
       return res;
     return false;
@@ -57,6 +53,41 @@ userDao.saveUser = async (user, userdb) => {
     console.log('Save User Error: ', e);
     return false;
   } 
+}
+
+/*
+  Rights, each digit represents different right
+  1.  0 - Not admin 1- Admin, can change everything
+  2.  (Project item) 0 - can't see, 1 - can see, 2 - can edit
+  3.  (Project children) 0 - can't see, 1 - can see own, 2 - can see all items
+  4.  (Project children edit) 0 -can't edit, 1 can edit/make own, 2 can edit all 
+  examples
+  1000 - admin, can do everything
+  0121 - can be in project, see everything edit its own
+  0122 - can be in porject, see everything and edit everthing within project
+*/
+userDao.addChannel = async (id, channelName, userdb, rights = '0122') => {
+  try {
+    const user = await userDao.getUser(id, userdb);
+    if(!user)
+      return false;
+
+    if(!user.meta_access) user.meta_access = {};
+    if(!user.meta_access.channels) user.meta_access.channels = {};
+
+    user.meta_access.channels[channelName] = rights;
+
+    const res = await userDao.saveUser(user, userdb);
+
+    if(res.ok == true)
+      return res;
+    return false;
+
+  }
+  catch(e){
+    console.log(e);
+    return false;
+  }
 }
 
 userDao.getUser = async (id, userdb) =>{
@@ -89,7 +120,7 @@ userDao.getUserByUsername = async (username, userdb) => {
     return null;
   }
   catch(e) {
-    console.log('GetUserByEmail Error', e.message);
+    console.log('GetUserByEmail Error', e);
     return null;
   }
 }
@@ -129,48 +160,12 @@ userDao.uniqueEmail = async (email, userdb) => {
   return ((await userDao.getUserByEmail(email, userdb)) == null);
 }
 
-userDao.uniqueChannel = async (channel, userdb) => {
-  try{
-    const c = await userdb.get('channel|'+channel);
-    return false;
-  }
-  catch(e) {
-    // console.log('GetUser Error: ', e.message);
-    return true;
-  }
-}
 
-userDao.saveChannel = async (user, channel, read, write, admin, userdb) => {
-  try{
-    console.log('Save channel: ', channel );
-    const res = await userdb.insert({ _id: 'channel|'+channel, creator: user._id });
-    console.log(res);
-    if(res.ok != true)
-      return false;
 
-    //now edit user add channel to its meta access
-    if(!user.meta_access) user.meta_access = {};
-    if(!user.meta_access.channels) user.meta_access.channels = {};
-
-    user.meta_access.channels[channel] = { r: read, w: write, a: admin };
-    console.log('USER');
-    console.log(user);
-    const res2 = await userdb.insert(user)
-    
-    if(res2.ok) return true;
-    return false;
-  
-  }
-  catch(e){
-    console.log('Save Channel Error: ', e);
-    return false;
-  } 
-}
-
-userDao.saveUserRequest = async (user, data) => {
+userDao.saveUserRequest = async (user, data, userdb) => {
   try{
 
-    const unique = uuidv1();
+    const unique = shortid.generate();
 
     const doc = {
      ... { _id: 'request|' + user + '|' + unique },
@@ -229,6 +224,9 @@ userDao.authenticateLocal = async (username, email, password, userdb) => {
   return { success: true, errors: [], user: user};
   
 }
+
+
+
 
 
 module.exports = userDao; 

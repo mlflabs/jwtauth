@@ -1,11 +1,8 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
-//const JWTstrategy = require('passport-jwt').Strategy;
-//We use this to extract the JWT sent by the user
-const ExtractJWT = require('passport-jwt').ExtractJwt;
 const { check, body, oneOf, validationResult } = require('express-validator/check');
 const userDao = require('../userDao');
-
+const utils = require('../utils');
 
 const router = express.Router();
 
@@ -23,15 +20,22 @@ function validateEmail(email) {
 
 
 function createNewToken(user, app){
-  return  jwt.sign({ 
-    id : user._id,
-    username: user.username,
-    app: app,
-    role: user.role,
-    code: user.loginCode,
-    shortExp: Math.floor(Date.now() / 1000) + (60 * 60), //TODO: use settings lenth
-    email: user.email },
-    process.env.TOKEN_SECRET,{ expiresIn: process.env.TOKEN_LENGTH});
+  const exp = Math.floor(Date.now() / 1000) + process.env.TOKEN_LENGTH_DAYS;
+  if(!user.meta_access) user.meta_access = {};
+  if(!user.meta_access.channels) user.meta_access.channels = [];
+  const channels = user.meta_access.channels || '';
+  return  {
+    exp: exp,
+    token: jwt.sign({ 
+      id : user._id,
+      username: user.username,
+      app: app,
+      role: user.role,
+      code: user.loginCode,
+      shortExp: exp,
+      ch: channels,
+      email: user.email },
+      process.env.TOKEN_SECRET,{ expiresIn: process.env.TOKEN_LENGTH})};
 }
 
 // *** Login
@@ -45,7 +49,7 @@ router.post('/login', [
 
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(422).json({ errors: errors.array() });
+    return utils.sendErrorFromExpressValidaiton(errors, res);
   }
 
   //console.log('Login Res body: ', req.body);
@@ -65,8 +69,6 @@ router.post('/login', [
     }
   }
 
-
-
   const auth = await userDao.authenticateLocal(username, email, password, 
     req.app.userdb);
 
@@ -74,21 +76,17 @@ router.post('/login', [
 
   //console.log('Login Authentication: ', auth);
   if(!auth.success)
-    return res.status(422).json({ errors: auth.errors});
+    return utils.sendErrorFromExpressValidaiton(auth.errors, res);
 
-  
-  const token = createNewToken(auth.user, app);
-
-  //lets decode token to see the expiary date
-  const payload = jwt.decode(token);
-  console.log('Payload: ', payload);
+  const {exp, token} = createNewToken(auth.user, app);
 
 
   console.log('Token: ', token)
 
-  return res.json({ token: token,
+  return res.json({ success: true,
+                    token: token,
                     app: app,
-                    expires: payload.exp, 
+                    expires: exp, 
                     username: auth.user.username,
                     id: auth.user._id,
                     email: auth.user.email });
@@ -99,44 +97,33 @@ router.post('/login', [
 
 
 // **** REFRESH
-router.post('/renewJWT', [
-  body('token', 'No token given').trim().isLength({ min: 3 }),
+router.post('/renewToken', [
+  body('token', 'No token given').trim().isLength({ min: 3 }).bail(),
 ], async (req, res) => {
 
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(422).json({ errors: errors.array() });
+    return utils.sendErrorFromExpressValidaiton(errors.array(), res);
   }
-
   //console.log('Login Res body: ', req.body);
   const token = req.body.token;
   
   try{
     const payload = jwt.verify(token, process.env.TOKEN_SECRET )
-    console.log('PAYLOAD:: ',payload);
+    const userdoc = await userDao.getUser(payload.id, req.app.userdb);
+    console.log('UserDOC: ', payload, userdoc);
 
 
-    //Need to double check if auto refresh is ok for this user, or user has logout 
-    const userdoc = await userDao.getUser(payload.user, req.app.userdb);
-    console.log('UserDOC: ', payload.user, userdoc);
-
-    //check if we still have same token code
     if(payload.code !== userdoc.loginCode){
-      return res.status(422).json({ errors: [{
-        location: 'token',
-        msg: 'Token code is not valid, please relogin.'
-      }]});
+      return utils.sendError('token', 'Token code is not valid, please relogin.', res);
     }
 
-    const newtoken = createNewToken(userdoc, payload.app);
+    const tokenres = createNewToken(userdoc, payload.app);
     
-    //lets decode token to see the expiary date
-    const newpayload = jwt.decode(newtoken);
-    console.log('New Payload: ', newpayload);
-
-    return res.json({ token: newtoken,
+    return res.json({ token: tokenres.token,
+                      channels: userdoc.meta_access.channels,
                       app: payload.app,
-                      expires: newpayload.exp, 
+                      expires: tokenres.exp, 
                       username: userdoc.username, // TODO: remove in future
                       id: userdoc._id,
                       email: userdoc.email });
@@ -161,180 +148,6 @@ router.post('/renewJWT', [
    
 });
 
-
-
-// *** Add channel to user
-router.post('/addnewchannel', [
-  body('token', 'No token given').trim().isLength({ min: 3 }),
-  body('channel','Channel required').trim().isLength({ min: 3 }).trim().escape(), 
-], async (req, res) => {
-
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(422).json({ errors: errors.array() });
-  }
-
-  const channel = req.body.channel;
-  const token = req.body.token;
-
-  try{
-    const payload = jwt.verify(token, process.env.TOKEN_SECRET )
-    console.log('PAYLOAD:: ',payload);
-
-
-    //Need to double check if auto refresh is ok for this user, or user has logout 
-    const userdoc = await userDao.getUser(payload.user, req.app.userdb);
-    console.log('UserDOC: ', payload.user, userdoc);
-
-    //check if we still have same token code
-    if(payload.code !== userdoc.loginCode){
-      return res.status(422).json({ errors: [{
-        location: 'token',
-        msg: 'Token code is not valid, please relogin.'
-      }]});
-    }
-
-    //check if the channel is unique
-    const unique = await userDao.uniqueChannel(channel, req.app.userdb);
-    if(!unique){
-      return res.status(422).json({ errors: [{
-        location: 'channel',
-        msg: 'Channel is not unique.'
-      }]});
-    }
-
-    //TODO:: we can have a limit as to how many channels a user can have
-
-
-
-    //create new channel, with user as creator
-    const resChannel = await userDao.saveChannel(
-      userdoc, channel, true, true, true, req.app.userdb);
-
-    if(!resChannel){
-      return res.status(422).json({ errors: [{
-          location: 'channel',
-          msg: 'Error saving channel.'
-      }]});
-    }
-
-
-    return res.json({  message : 'Channel saved.',
-                       channel: channel,
-                       success : true  });
-
-  }
-  catch(e){
-    console.log('Adding new channel request error: ', e.message, e.name)
-
-    return res.status(422).json({ errors: [{
-      location: 'database',
-      msg: 'Error saving, please wait and try again later.'
-    }, e]});
-  }
-});
-
-
-router.post('/sharechannel', [
-  body('token', 'No token given').trim().isLength({ min: 3 }),
-  body('channel','Channel required').trim().isLength({ min: 3 }).trim().escape(), 
-  body('id', 'Id of friend is required').trim().isLength({ min: 3 }).trim().escape(),
-  body('r', 'Read access selection is required').trim().isLength({ min: 1 }).trim().escape(),
-  body('w', 'Write access selection is required.').trim().isLength({ min: 1 }).trim().escape(),
-  body('a', 'Admin access selection is required').trim().isLength({ min: 1 }).trim().escape(),
-], async (req, res) => {
-
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(422).json({ errors: errors.array() });
-  }
-
-  const channel = req.body.channel;
-  const token = req.body.token;
-  const id = req.body.id;
-  const r = req.body.r;
-  const w = req.body.w;
-  const a = req.body.a;
-
-  try{
-    const payload = jwt.verify(token, process.env.TOKEN_SECRET )
-    console.log('PAYLOAD:: ',payload);
-
-
-    //Need to double check if auto refresh is ok for this user, or user has logout 
-    const userdoc = await userDao.getUser(payload.user, req.app.userdb);
-    console.log('UserDOC: ', payload.user, userdoc);
-
-    //check if we still have same token code
-    if(payload.code !== userdoc.loginCode){
-      return res.status(422).json({ errors: [{
-        location: 'token',
-        msg: 'Token code is not valid, please relogin.'
-      }]});
-    }
-
-
-    //check if user has admin access to this channel
-    const rights = userdoc.meta_access.channels[channel];
-    if(!rights.a){
-      return res.status(422).json({ errors: [{
-        location: 'access',
-        msg: 'You do not have rights to share this channel'
-      }]});
-    }
-
-    //check if the id is a valid pointer, 
-    var friend;
-    if(validateEmail(id)){
-      friend = userDao.getUserByEmail(id, req.app.userdb);
-    }
-    else {
-      friend = userDao.getUserByUsername(id, req.app.userdb);
-    }
-
-    if(!friend){
-      //TODO: Here we can send email to user and request them to register
-      return res.status(422).json({ errors: [{
-        location: 'Friend does not exist',
-        code: 351,
-        msg: 'Specified user does not exist, please help him/her reqister first before sharing this channel'
-      }]});
-    }
-    console.log('Loaded Friend: ');
-    console.log(friend);
-
-    //make a request to share, channel will be added once the friend accepts it
-    const rights2 = {r: (r == true), w: (w == true), a: (a == true)}
-    resRequest = userDao.saveUserRequest(friend._id,
-      { type: 'sharechannel', 
-        host: userdoc._id,
-        date: Date.now(), 
-        channel: channel, 
-        right: rights2 })
-
-
-    if(!resRequest){
-      return res.status(422).json({ errors: [{
-          location: 'Database',
-          code: 362,
-          msg: 'Error adding share request.  Please try again at a later time.'
-      }]});
-    }
-
-
-    return res.json({  message : 'Request saved.',
-                       success : true  });
-
-  }
-  catch(e){
-    console.log('Sharing request error: ', e.message, e.name)
-
-    return res.status(422).json({ errors: [{
-      location: 'database',
-      msg: 'Error saving, please wait and try again later.'
-    }, e]});
-  }
-});
 
 
 
@@ -389,37 +202,43 @@ router.post('/register', [
   body('email', 'Valid email is required').isEmail().normalizeEmail(),
   body('username', 'Username is already in use')
     .custom( async (value, {req}) => {
-      return userDao.uniqueUsername(value, req.app.userdb);
+      return await userDao.uniqueUsername(value, req.app.userdb);
   }),
   body('email', 'Email is already in use')
     .custom( async (value, {req}) => {
-      return userDao.uniqueEmail(value, req.app.userdb);
-  }),
-], async (req, res, next) => {
+      return await userDao.uniqueEmail(value, req.app.userdb);
+  })
+], async (req, res) => {
+  try {
+    
+    const errors = validationResult(req);
 
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(422).json({ errors: errors.array() });
+    console.log(errors.array());
+
+    if (!errors.isEmpty()) {
+      return utils.sendErrorFromExpressValidaiton(errors.array(), res);
+    }
+
+    //save user
+    //console.log('body', req.body);
+    const daores = await userDao.saveUserBasic( req.body.username, 
+                                                req.body.email, 
+                                                req.body.password,
+                                                req.app.userdb);
+    //console.log('DaoRes:', daores);
+    if(daores){
+      return utils.sendRes(res, 'Singup successful');
+    }
+    else {
+      return utils.sendError('database', 
+        'Error saving to database, please wait a few min land try again.', res);
+    }
   }
-  //save user
-  //console.log('body', req.body);
-  const daores = await userDao.saveUserBasic( req.body.username, 
-                                              req.body.email, 
-                                              req.body.password,
-                                              req.app.userdb);
-  //console.log('DaoRes:', daores);
-  if(daores.ok){
-    res.json({ 
-      message : 'Signup successful',
-      success : true 
-    });
+  catch(e){
+    console.log(e);
+
   }
-  else {
-    return res.status(422).json({ errors: [{
-      location: 'database',
-      msg: 'Error saving to database, please wait a few min land try again.'
-    }]});
-  }
+  
   
 });
 
@@ -428,35 +247,28 @@ router.post('/register', [
 // *** LOGOUT
 router.post('/logout', [
   body('token', 'Valid token is required to logout').trim().isLength({ min: 3 }),
+  body('token', 'Token is not valid')
+    .custom( async (value, {req}) => {
+      const res = await utils.checkProperToken(value, req.app.userdb);
+      if(res.ok) req.userDoc = res.data;
+      return res.ok;
+  })
 ], async (req, res) => {
 
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(422).json({ errors: errors.array() });
+    return utils.sendErrorFromExpressValidaiton(errors.array(), res);
   }
 
-  //console.log('Login Res body: ', req.body);
-  const token = req.body.token;
-
-
   try{
-    const payload = jwt.verify(token, process.env.TOKEN_SECRET )
-    console.log('PAYLOAD:: ', payload);
-
-
-    //Need to double check if auto refresh is ok for this user, or user has logout 
-    const rec = await userDao.getUser(payload.user, req.app.userdb);
-    await userDao.saveUser({...rec, ...{loginCode: Date.now()}}, req.app.userdb);
+    await userDao.saveUser({...req.userDoc, ...{loginCode: Date.now()}}, req.app.userdb);
     //lets save user with new user code, this will prevent future refresh
     return res.json({status: true, action: 'logout'});
 
   }
   catch(e){
     console.log('Logout Error:::: ', e.message)
-    return res.status(422).json({ errors: [{
-      location: 'token',
-      msg: 'Invalid token, or token has expired. Please relogin.'
-    }]});
+    return utils.sendError('database', 'Error removing token, please try again.', res);
   }
 
 });
