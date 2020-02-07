@@ -69,5 +69,32 @@ utils.getTokenPayload =  (token) => {
     return false;
   }
 }
+    /*
+      Rights, each digit represents different right
+      0.  0 - Not admin 1- Admin, can change everything
+      1.  (Project item) 0 - can't see, 1 - can see, 2 - can edit
+      2.  (Project children) 0 - can't see, 1 - can see own, 2 - can see all items
+      3.  (Project children edit) 0 -can't edit, 1 can edit/make own, 2 can edit all 
+    */
+
+utils.isAdmin = (rights) => {
+  if(rights.substring(0,1)=== '1') return true;
+  return false;
+}
+
+utils.canEditProject = (rights) => {
+  if(rights.substring(0,1)=== '1') return true;
+  if(rights.substring(1,1)=== '2') return true;
+  return false;
+}
+
+//basic function, assumes rights belong to user, id is user id, item 
+//has creator prop with creator id
+utils.canEditChildItem = (item, rights, id) => {
+  if(rights.substring(0,1)=== '1') return true;
+  if(rights.substring(3,1) === '2') return true;
+  if(rights.substring(3,1) === '1' && item.creator === id) return true;
+  return false;
+}
 
 module.exports = utils;

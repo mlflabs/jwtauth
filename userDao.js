@@ -4,6 +4,12 @@ const userDao = {};
 const app = require('./index');
 const shortid = require('shortid');
 
+
+userDao.validateEmail = (email) => {
+  var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  return re.test(String(email).toLowerCase());
+}
+
 userDao.encryptPassword = async (password) => {
   return await bcrypt.hash(password, 10);
 }
@@ -18,6 +24,9 @@ userDao.saveUserBasic = async (username, email, password, userdb) => {
     const length = 4 + Math.floor(tries/5)
     id = shortid.generate().substring(0,length);
     unique = userDao.uniqueId(id, userdb);
+    //can't have ids starting with underscore
+    if(id.substring(0,1) == '_') unique = false;
+    if(id.substring(0,1) == '-') unique = false;
     tries++;
   }
 
@@ -103,6 +112,14 @@ userDao.getUser = async (id, userdb) =>{
   }
 }
 
+userDao.getUserByUsernameOrEmail = async (id, userdb) => {
+  const isemail = userDao.validateEmail(id);
+  if(isemail)
+    return await userDao.getUserByEmail(id, userdb);
+  else
+    return await userDao.getUserByUsername(id, userdb);
+}
+
 userDao.getUserByUsername = async (username, userdb) => {
   try{
     const q = {
@@ -160,30 +177,6 @@ userDao.uniqueEmail = async (email, userdb) => {
   return ((await userDao.getUserByEmail(email, userdb)) == null);
 }
 
-
-
-userDao.saveUserRequest = async (user, data, userdb) => {
-  try{
-
-    const unique = shortid.generate();
-
-    const doc = {
-     ... { _id: 'request|' + user + '|' + unique },
-     ... data
-    }
-
-    const res = await userdb.insert(doc)
-
-    if(res.ok == true)
-      return true;
-    return false;
-  
-  }
-  catch(e){
-    console.log('Save Channel Error: ', e);
-    return false;
-  } 
-}
 
 
 

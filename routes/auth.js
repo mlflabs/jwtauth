@@ -1,6 +1,6 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
-const { check, body, oneOf, validationResult } = require('express-validator/check');
+const { check, body, oneOf, validationResult } = require('express-validator');
 const userDao = require('../userDao');
 const utils = require('../utils');
 
@@ -250,9 +250,13 @@ router.post('/logout', [
   body('token', 'Token is not valid')
     .custom( async (value, {req}) => {
       const res = await utils.checkProperToken(value, req.app.userdb);
-      if(res.ok) req.userDoc = res.data;
-      return res.ok;
-  })
+      if(res.ok) {
+        req.userDoc = res.data;
+        return true;
+      }
+      else
+        throw new Error('Token is not valid');
+  }),
 ], async (req, res) => {
 
   const errors = validationResult(req);
