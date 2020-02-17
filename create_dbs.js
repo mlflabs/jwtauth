@@ -18,6 +18,20 @@ nano.db.create(process.env.CHANNEL_DB)
   nano.db.create(process.env.API_DB)
   .then((body) => {
     console.log('database ' + process.env.API_DB + ' created!');
+    const db = nano.db.use(process.env.API_DB);
+    try{
+      
+      db.createIndex({
+        index: {
+          fields: ['channel', 'updated'],
+        },
+        name: 'timestampindex'
+      });
+    }
+    catch(e){
+      console.log('Preping Database: ', e.message);
+    }
+
 
   })
   .catch(err => {
@@ -30,25 +44,27 @@ nano.db.create(process.env.CHANNEL_DB)
   nano.db.create(process.env.USER_DB)
   .then((body) => {
     console.log('database ' + process.env.USER_DB + ' created!');
+    const userdb = nano.db.use(process.env.USER_DB);
     try{
-      app.userdb.createIndex({
+      
+      userdb.createIndex({
         index: {
           fields: ['email'],
         }
       });
     }
     catch(e){
-      console.log('Preping Database: ', err.message);
+      console.log('Preping Database: ', e.message);
     }
     try{
-      app.userdb.createIndex({
+      userdb.createIndex({
         index: {
           fields: ['username'],
         }
       });
     }
     catch(e){
-      console.log('Preping Database: ', err.message);
+      console.log('Preping Database: ', e.message);
     }
     
   })

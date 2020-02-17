@@ -37,6 +37,7 @@ userDao.saveUserBasic = async (username, email, password, userdb) => {
     email: email,
     loginCode: Date.now(),
     role: 'user',
+    [process.env.ACCESS_META_KEY]: {channels: {}},
     strategies: {
       basic: {
         password: hashPass
@@ -64,16 +65,40 @@ userDao.saveUser = async (user, userdb) => {
   } 
 }
 
+userDao.addRightsToUser = async (id, channel, rights, userdb) => {
+  try{
+
+    const userdoc = await userDao.getUser(id, userdb);
+    console.log(userdoc);
+
+    if(!userdoc[process.env.ACCESS_META_KEY])
+      userdoc[process.env.ACCESS_META_KEY] = {};
+    if(!userdoc[process.env.ACCESS_META_KEY]['channels'])
+    userdoc[process.env.ACCESS_META_KEY]['channels'] = {};
+
+    userdoc[process.env.ACCESS_META_KEY]['channels'][channel] = rights;
+    const res = await userdb.insert(userdoc);
+    if(res.ok == true)
+      return res;
+    return false;
+  
+  }
+  catch(e){
+    console.log('Save User Error: ', e);
+    return false;
+  } 
+}
+
 /*
   Rights, each digit represents different right
   1.  0 - Not admin 1- Admin, can change everything
-  2.  (Project item) 0 - can't see, 1 - can see, 2 - can edit
-  3.  (Project children) 0 - can't see, 1 - can see own, 2 - can see all items
-  4.  (Project children edit) 0 -can't edit, 1 can edit/make own, 2 can edit all 
+  2.  (Channel item) 0 - can't see, 1 - can see, 2 - can edit
+  3.  (Channel children) 0 - can't see, 1 - can see own, 2 - can see all items
+  4.  (Channel children edit) 0 -can't edit, 1 can edit/make own, 2 can edit all 
   examples
   1000 - admin, can do everything
-  0121 - can be in project, see everything edit its own
-  0122 - can be in porject, see everything and edit everthing within project
+  0121 - can be in channel, see everything edit its own
+  0122 - can be in porject, see everything and edit everthing within channel
 */
 userDao.addChannel = async (id, channelName, userdb, rights = '0122') => {
   try {

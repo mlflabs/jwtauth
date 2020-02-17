@@ -44,7 +44,3 @@ app.use('/sync', sync_routes);
 
 module.exports = app; 
 
-
-app.listen(process.env.PORT, () => {
-  console.log('Server started port:', process.env.PORT);
-});

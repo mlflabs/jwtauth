@@ -1,22 +1,30 @@
 const shortid = require('shortid');
-
+const utils = require('./utils');
 const messagesDao = {};
 
 //to, from, points to username, not id
-messagesDao.getMsg = (to, from, messageType, message, data) => {
+messagesDao.getMsgObject = (to, from, messageType, message, data) => {
 
   return {to, from, messageType, message, data}
 }
 
-messagesDao.sendMessage = async (toId, msg, messagesdb) => {
+const getMessageId = (userid, app) => {
+  return  utils.getUserChannelName(userid, app) +
+          process.env.DIV + 'msg' + 
+          process.env.DIV + Date.now() + 
+          process.env.DIV + shortid.generate();   
+}
+
+messagesDao.sendMessage = async (toId, user,  msg, messagesdb) => {
   try {
-    const uuid = shortid.generate();
     const doc = {...{
-      _id: 'msg|'+toId+'|'+Date.now()+'|'+uuid,
-      date: Date.now(),
-      [process.env.ACCESS_META_KEY]: ['u|'+toId+'|'],
+      _id: getMessageId(toId, user.app),
+      created: Date.now(),
+      updated: Date.now(),
+      type: process.env.DOC_TYPE_MSG,
+      channel:  utils.getUserChannelName(toId, user.app)
     }, ...msg}
-    const res = await messagesdb.insert(doc)
+    const res = await messagesdb.insert(utils.checkDocStructureBeforeSave(doc));
     if(res.ok) return true;
     return false;
   }
@@ -26,7 +34,19 @@ messagesDao.sendMessage = async (toId, msg, messagesdb) => {
   }
 }
 
+messagesDao.getMessageDoc = async (id, messagesdb) => {
+  try{
+    const msg = await messagesdb.get(id);
+    return msg;
+  }
+  catch(e) {
+    console.log('GetMsg Error: ', e.message);
+    return null;
+  }
+}
+
 //fromDate can be timestamp
+/*
 messagesDao.getMessages = async (username, timestamp, messagesdb) => {
   try {
     const res = await messagesdb.list({
@@ -42,7 +62,7 @@ messagesDao.getMessages = async (username, timestamp, messagesdb) => {
     return false;
   }
 }
-
+*/
 
 
 

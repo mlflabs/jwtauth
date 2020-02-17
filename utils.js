@@ -1,7 +1,6 @@
 const jwt = require('jsonwebtoken');
 const userDao = require('./userDao');
 
-
 const utils = {}
 
 utils.sendRes = (res, msg = "", data={}) => {
@@ -28,39 +27,29 @@ utils.sendError = (location, msg, res, errorCode=422) => {
   return res.status(errorCode).json({success: false, errors:[{location, msg}]});
 }
 
-utils.generateProjectId = (uuid) => {
-  const id = process.env.PROJECT_SERVICE + '|' + process.env.PROJECT_SERVICE_INDEX + '|' + uuid;
-}
-
 //if ok, also returns userdoc
-utils.checkProperToken = async (token, userdb) => {
+utils.checkProperToken = async (token) => {
   try {
-    const payload = jwt.verify(token, process.env.TOKEN_SECRET )
-    console.log('PAYLOAD:: ',payload);
-
-    const userdoc = await userDao.getUser(payload.id, userdb);
-    console.log('UserDOC: ', payload.id, userdoc);
-
-
-    if(payload.code !== userdoc.loginCode){
-      return utils.getRessult(false, null, [utils.getError('token',
-              'Token code is not valid, please relogin.')])
-
+    const payload = jwt.verify(token, process.env.TOKEN_SECRET)
+    console.log('PAYLOAD:: ', payload);
+    if(Date.now() > Number(payload.refresh)){
+      return utils.getRessult(false, null, [utils.getError('token', 
+        'Token expired.', 401)]);
     }
 
-    return utils.getRessult(true, userdoc)
+    return utils.getRessult(true, payload)
   }
   catch(e) {
     console.log(e);
     return utils.getRessult(false, null, [utils.getError('database', 
         'Error saving, please wait and try again later.')]);
   }
-  
 }
 
 utils.getTokenPayload =  (token) => {
   try {
     const payload = jwt.verify(token, process.env.TOKEN_SECRET )
+
 
     return payload;
   }
@@ -82,7 +71,14 @@ utils.isAdmin = (rights) => {
   return false;
 }
 
-utils.canEditProject = (rights) => {
+utils.isChannel = (id) => {
+
+}
+
+const DIV = process.env.DIV;
+const CHANNEL_SUFFIX = process.env.CHANNEL_SUFFIX; 
+
+utils.canEditChannel = (rights) => {
   if(rights.substring(0,1)=== '1') return true;
   if(rights.substring(1,1)=== '2') return true;
   return false;
@@ -96,5 +92,30 @@ utils.canEditChildItem = (item, rights, id) => {
   if(rights.substring(3,1) === '1' && item.creator === id) return true;
   return false;
 }
+
+utils.getUserChannelNameFromUser = (user) => {
+  return  process.env.CHANNEL_USER_PREFIX + 
+          user.app + user.id;
+}
+
+utils.getUserChannelName = (id, app) => {
+  return  process.env.CHANNEL_USER_PREFIX + 
+          app + id;
+}
+
+utils.getChannelDocId = (channel) => {
+  return  channel +  
+          process.env.DIV +
+          process.env.CHANNEL_SUFFIX;
+}
+
+utils.checkDocStructureBeforeSave = (doc) => {
+  if(!doc._id) throw new Error('doc._id is required');
+  if(!doc.updated) throw new Error('doc.updated is required');
+  if(!doc.channel) throw new Error('doc.channel is required');
+  if(!doc.type) throw new Error('doc.type is required');
+  return doc;
+}
+
 
 module.exports = utils;

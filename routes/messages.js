@@ -11,6 +11,7 @@ router.get('/', (req, res) =>{
   res.send('Message System');
 }); 
 
+/*
 router.post('/sendMessage',[
   body('token', 'No token given').trim().isLength({ min: 3 }).bail(),
   body('to', 'To, id of receiver is required').trim().isLength({ min: 3 }).trim().escape().bail(),
@@ -47,12 +48,14 @@ router.post('/sendMessage',[
   const type = req.body.type;
   const message = req.body.message;
   const msgres = messagesDao.sendMessage(req.to._id,
-      messagesDao.getMsg(to,sendername,type,message), req.app.apidb);
+      messagesDao.getMsgObject(to,sendername,type,message), req.app.apidb);
   if(msgres) return utils.sendRes(res,'Message sent.')
   return utils.sendError('System', 'Error sending message')
 });
+*/
 
 
+/*
 router.post('/getMessages',[
   body('token', 'No token given').trim().isLength({ min: 3 }).bail(),
   body('from', 'From is not specified, use "0", to get all messages').trim().isLength({ min: 2 }).trim().escape().bail(),
@@ -67,7 +70,7 @@ router.post('/getMessages',[
         throw new Error('Token is not valid');
   })
 ], async (req, res) => {
-
+/////************ figure this out 
   const msgs = await messagesDao.getMessages(req.userDoc.username, from);
 
   if(!msgs) return utils.sendError('System', 'Currently system is not availabe', res);
@@ -75,5 +78,5 @@ router.post('/getMessages',[
   return utils.sendRes(res,'Messages received', msgs);
 });
 
-
+*/
 module.exports = router;

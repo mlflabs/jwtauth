@@ -6,6 +6,10 @@ const utils = require('../utils');
 
 const router = express.Router();
 
+router.use((req, res, next) => {
+
+  next();
+})
 
 router.get('/', (req, res) =>{
   res.send('Auth System');
@@ -20,10 +24,12 @@ function validateEmail(email) {
 
 
 function createNewToken(user, app){
-  const exp = Math.floor(Date.now() / 1000) + process.env.TOKEN_LENGTH_DAYS;
+  const exp = Date.now() + (process.env.TOKEN_REFRESH_LENGTH_DAYS * 86400000);
+  const refreshexp = Date.now() + (process.env.TOKEN_LENGTH_DAYS * 86400000 );
   if(!user.meta_access) user.meta_access = {};
   if(!user.meta_access.channels) user.meta_access.channels = [];
-  const channels = user.meta_access.channels || '';
+  const channels = user[process.env.ACCESS_META_KEY].channels || {};
+  //channels[process.env.CHANNEL_USER_PREFIX + app + user._id]
   return  {
     exp: exp,
     token: jwt.sign({ 
@@ -32,10 +38,10 @@ function createNewToken(user, app){
       app: app,
       role: user.role,
       code: user.loginCode,
-      shortExp: exp,
-      ch: channels,
-      email: user.email },
-      process.env.TOKEN_SECRET,{ expiresIn: process.env.TOKEN_LENGTH})};
+      refresh: refreshexp,
+      ch: channels},
+      process.env.TOKEN_SECRET,
+      { expiresIn: process.env.TOKEN_REFRESH_LENGTH_DAYS+'d'})};
 }
 
 // *** Login
@@ -119,6 +125,9 @@ router.post('/renewToken', [
     }
 
     const tokenres = createNewToken(userdoc, payload.app);
+
+    //const tokendata = utils.getTokenPayload(tokenres.token);
+
     
     return res.json({ token: tokenres.token,
                       channels: userdoc.meta_access.channels,
