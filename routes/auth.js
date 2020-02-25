@@ -26,9 +26,6 @@ function validateEmail(email) {
 function createNewToken(user, app){
   const exp = Date.now() + (process.env.TOKEN_REFRESH_LENGTH_DAYS * 86400000);
   const refreshexp = Date.now() + (process.env.TOKEN_LENGTH_DAYS * 86400000 );
-  if(!user.meta_access) user.meta_access = {};
-  if(!user.meta_access.channels) user.meta_access.channels = [];
-  const channels = user[process.env.ACCESS_META_KEY].channels || {};
   //channels[process.env.CHANNEL_USER_PREFIX + app + user._id]
   return  {
     exp: exp,
@@ -39,7 +36,7 @@ function createNewToken(user, app){
       role: user.role,
       code: user.loginCode,
       refresh: refreshexp,
-      ch: channels},
+      ch: user[process.env.ACCESS_META_KEY]},
       process.env.TOKEN_SECRET,
       { expiresIn: process.env.TOKEN_REFRESH_LENGTH_DAYS+'d'})};
 }
@@ -130,7 +127,7 @@ router.post('/renewToken', [
 
     
     return res.json({ token: tokenres.token,
-                      channels: userdoc.meta_access.channels,
+                      channels: userdoc[process.env.ACCESS_META_KEY],
                       app: payload.app,
                       expires: tokenres.exp, 
                       username: userdoc.username, // TODO: remove in future
@@ -205,18 +202,22 @@ router.post('/forgotpassword', [
 
 // *** register
 router.post('/register', [
-  body('password', 'Password needs to be at leaset 5 characters long').trim().isLength({ min: 3 }),
-  body('username', 'Username must be at lease 3 characters').trim().isLength({ min: 3 }).trim().escape(),
-  body('username', 'Username must not be more than 20 characters').trim().isLength({ max: 20 }).trim().escape(),
-  body('email', 'Valid email is required').isEmail().normalizeEmail(),
+  body('password', 'Password needs to be at leaset 5 characters long').trim().isLength({ min: 3 }).bail(),
+  body('username', 'Username must be at lease 3 characters').trim().isLength({ min: 3 }).trim().escape().bail(),
+  body('username', 'Username must not be more than 20 characters').trim().isLength({ max: 20 }).trim().escape().bail(),
+  body('email', 'Valid email is required').isEmail().normalizeEmail().bail(),
   body('username', 'Username is already in use')
     .custom( async (value, {req}) => {
-      return await userDao.uniqueUsername(value, req.app.userdb);
-  }),
+      const res =  await userDao.uniqueUsername(value, req.app.userdb);
+      if(!res)
+        throw new Error('Username already taken');
+  }).bail(),
   body('email', 'Email is already in use')
     .custom( async (value, {req}) => {
-      return await userDao.uniqueEmail(value, req.app.userdb);
-  })
+      const res = await userDao.uniqueEmail(value, req.app.userdb);
+      if(!res)
+        throw new Error('Email already taken');
+  }).bail()
 ], async (req, res) => {
   try {
     

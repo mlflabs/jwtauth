@@ -4,7 +4,6 @@ const { check, body, oneOf, validationResult } = require('express-validator');
 const channelDao = require('../channelDao');
 const messagesDao = require('../messagesDao');
 const userDao = require('../userDao');
-const projectDao = require('../projectDao');
 const router = express.Router();
 
 
@@ -13,7 +12,61 @@ router.get('/', (req, res) =>{
 }); 
 
 
-// *** Add channel to user
+
+router.post('/addNewSystemDoc', [
+  body('token', 'No token given').trim().isLength({ min: 3 }).bail(),
+  body('channelid', 'channelid required').trim().isLength({ min: 3 }).bail(),
+  body('doc', 'doc body required').notEmpty().bail(),
+  body('doctype', 'Doc type is required').notEmpty().bail(),
+  body('token', 'Token is not valid')
+    .custom( async (value, {req}) => {
+      const res = await utils.checkProperToken(value, req.app.userdb);
+      if(res.ok) {
+        req.user = res.data;
+        return true;
+      }
+      else
+        throw new Error('Token is not valid');
+  }).bail(),
+  body('channelid', '')
+    .custom( async (value, {req}) => {
+      const res = await channelDao.getChannel(value, req.app.apidb);
+      if(res) {
+        req.channelDoc = res;
+        return true;
+      }
+      else
+        throw new Error('channel id is not valid');
+  }).bail(),
+], async (req, res) => {
+
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json({ errors: errors.array() });
+  }
+
+  try{
+    let doc = {};
+    if(req.body.doc) doc = req.body.doc;
+
+    let secondaryType = req.body.secondaryType;
+    if(!secondaryType) secondaryType = undefined;
+    //create new channel, with user as creator
+    const resChannel = await channelDao.saveNewSystemDoc(
+      req.user, req.body.channelid, req.body.doctype, secondaryType,  doc,  req.app.apidb)
+
+    if(!resChannel || !resChannel.ok){
+      return utils.sendErrorFromResult(resChannel, res);
+    }
+    return utils.sendRes(res, 'System Doc saved', {doc: resChannel.data});
+  }
+  catch(e){
+    console.log('Adding new channel request error: ', e.message, e.name)
+    return utils.sendError('database', 'Error saving, please wait and try again later.', res);
+  }
+});
+
+
 router.post('/addNewChannel', [
   body('token', 'No token given').trim().isLength({ min: 3 }).bail(),
   body('name', 'Channel Name is required').trim().isLength({min:3}).bail(),
@@ -141,13 +194,13 @@ router.post('/sendAddMemberRequest', [
         channel: channel, 
         rights: rights }, req.app.channeldb);
     
-    msgRes = await messagesDao.sendMessage(friend._id, user,
-                messagesDao.getMsgObject(friend.username, user.username,'party', 
-                '', {channel: channel, name: req.channelDoc.name, date, type:'invite'}), req.app.apidb);
+    msgRes = await messagesDao.sendMessageToUser(friend._id, user.app,
+                messagesDao.getMsgObject(user.username, 'channelinvite', '',
+                '', {channel: channel, name: req.channelDoc.name, date}), req.app.apidb);
 
-    msgRes = await messagesDao.sendMessage(user.id, user,
-                messagesDao.getMsgObject(user.username, 'system','party/'+channel, 
-                '', {channel: channel, name: req.channelDoc.name, date, type: 'sendinvite'}), req.app.apidb);
+    msgRes = await messagesDao.sendMessageToUser(user.id, user.app,
+                messagesDao.getMsgObject('system','event', '', 
+                'Invite has been send to '+friend.username, {channel: channel, name: req.channelDoc.name, date}), req.app.apidb);
 
     if(!resRequest || !msgRes){
       return res.status(422).json({ errors: [{
@@ -209,7 +262,7 @@ router.post('/acceptChannelInvitation', [
     const messageDoc = req.messageDoc;
     
     //make sure we have proper message
-    if(messageDoc.messageType !== 'party')
+    if(messageDoc.messageType !== 'channelinvite')
       return utils.sendError('Message', "Message format not correct");
 
     const senderDoc = await userDao.getUserByUsername(messageDoc.from, req.app.userdb);
@@ -248,14 +301,15 @@ router.post('/acceptChannelInvitation', [
       return utils.sendError('System', "Internal System error, please wait and try again.");
     }
 
-    const msgRes1 = await messagesDao.sendMessage(user.id, user,
-        messagesDao.getMsgObject(user.username, 'system','party', 
-        'Invitation accepted', {name: channelDoc.name, type:'inviteaccepted'}), req.app.apidb);
+    const msgRes1 = await messagesDao.sendMessageToUser(user.id, user.app,
+        messagesDao.getMsgObject('system','event', '',
+        'Invitation accepted to ' + channelDoc.name, {name: channelDoc.name}), req.app.apidb);
 
     // let sender know, user accepted invitation
-    const msgRes2 = await messagesDao.sendMessage(senderDoc._id, user,
-                messagesDao.getMsgObject(senderDoc.username, 'system','party/'+channelDoc._id, 
-                '', {user: user.username, type: 'inviteaccepted'}), req.app.apidb);
+    const msgRes2 = await messagesDao.sendMessageToChannel(requestDoc.channel, 
+                messagesDao.getMsgObject('system','event', '',
+                'Invitation accepted to ' + channelDoc.name, 
+                {user: user.username, type: 'inviteaccepted'}), req.app.apidb);
 
     if(!msgRes1 || !msgRes2){
       return res.status(422).json({ errors: [{

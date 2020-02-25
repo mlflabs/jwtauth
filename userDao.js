@@ -37,7 +37,7 @@ userDao.saveUserBasic = async (username, email, password, userdb) => {
     email: email,
     loginCode: Date.now(),
     role: 'user',
-    [process.env.ACCESS_META_KEY]: {channels: {}},
+    [process.env.ACCESS_META_KEY]: {},
     strategies: {
       basic: {
         password: hashPass
@@ -69,14 +69,9 @@ userDao.addRightsToUser = async (id, channel, rights, userdb) => {
   try{
 
     const userdoc = await userDao.getUser(id, userdb);
-    console.log(userdoc);
+    //console.log(userdoc);
 
-    if(!userdoc[process.env.ACCESS_META_KEY])
-      userdoc[process.env.ACCESS_META_KEY] = {};
-    if(!userdoc[process.env.ACCESS_META_KEY]['channels'])
-    userdoc[process.env.ACCESS_META_KEY]['channels'] = {};
-
-    userdoc[process.env.ACCESS_META_KEY]['channels'][channel] = rights;
+    userdoc[process.env.ACCESS_META_KEY][channel] = rights;
     const res = await userdb.insert(userdoc);
     if(res.ok == true)
       return res;
@@ -106,10 +101,9 @@ userDao.addChannel = async (id, channelName, userdb, rights = '0122') => {
     if(!user)
       return false;
 
-    if(!user.meta_access) user.meta_access = {};
-    if(!user.meta_access.channels) user.meta_access.channels = {};
+    if(!user[process.env.ACCESS_META_KEY]) user[process.env.ACCESS_META_KEY] = {};
 
-    user.meta_access.channels[channelName] = rights;
+    user[process.env.ACCESS_META_KEY][channelName] = rights;
 
     const res = await userDao.saveUser(user, userdb);
 
@@ -122,7 +116,7 @@ userDao.addChannel = async (id, channelName, userdb, rights = '0122') => {
     console.log(e);
     return false;
   }
-}
+} 
 
 userDao.getUser = async (id, userdb) =>{
   try{
@@ -152,6 +146,7 @@ userDao.getUserByUsername = async (username, userdb) => {
         username: {'$eq': username}
       },
       limit: 1
+      //use_index: ''
     }
 
     const res = await userdb.find(q);

@@ -42,14 +42,18 @@ router.post('/sync',[
    
 
   const data = req.body.data;
-  
+  //make sure it has correct structure
+  if(!data.channels) data.channels = {};
+  if(!data.checkpoints) data.checkpoints = {};
+
+  console.log('Sync Data: ', data);
   // first save data
   const resSave = await syncDao.saveDocs(
     data.channels, req.user, req.app.apidb);
 
   // get return data
   const resLoad = await syncDao.loadUserNewDocs(
-    req.body.data.checkpoints, req.user, req.app.apidb);
+    data.checkpoints, req.user, req.app.apidb);
 
   console.log(resLoad);
 

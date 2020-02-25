@@ -24,16 +24,17 @@ syncDao.getPermissions = (channel, user) => {
 
 //if its ok, get the rev for saving
 //also check if its a system doc
-const isDocStaleAndGet_Rev = async (doc, timestamp, apidb) => {
+const canEditDocAndFormatForSave = async (doc, permissions, timestamp, apidb) => {
   try {
+    if(utils.isSystemDoc(doc.id)) return false;
+    
+    if(utils.isChannelParentDoc(doc.id)){
+      if(!permissions.channel) return false;
+    }
     const res = await apidb.get(doc._id);
-    if(res.type === 'system') return false;
-
     if(res.updated > doc.updated) return false; //if our doc time is lower then old doc
                                                 // means we didn't load latest doc
-
     return {...doc, ...{ _rev: res._rev, updated: timestamp }};
-    console.log(res);
   }
   catch(e) {
     //if we are here, no doc found, don't neeed _rev, can edit
@@ -60,11 +61,7 @@ const formatDocsByTypeForExport = async(docs) => {
     if(!newdocs[docs[i].type]) newdocs[docs[i].type] = [];
     if(!docs[i].id) docs[i].id = docs[i]._id
     const channel = docs[i].channel;
-    delete docs[i]._rev;
-    delete docs[i]._id;
-    delete docs[i].uuid;
-    delete docs[i].channel;
-    newdocs[docs[i].type].push(docs[i]);
+    newdocs[docs[i].type].push(utils.formatDocForExport(docs[i]));
     if(!channels[channel]) channels[channel] = 0;
     if(channels[channel] < docs[i].updated)
       channels[channel] = docs[i].updated;
@@ -131,7 +128,7 @@ syncDao.saveDocs = async (docs, user, apidb) => {
         newdoc = docs[channel][x];
         newdoc = await formatDocForInternalProcessing(newdoc, channel, apidb);
         if(!newdoc) continue;
-        newdoc = await isDocStaleAndGet_Rev(newdoc, timestamp,  apidb);
+        newdoc = await canEditDocAndFormatForSave(newdoc, perms, timestamp,  apidb);
         //if(!newdoc) continue;
         //logdoc  = await getChangeLogDoc(newdoc, channel, apidb);
         if(newdoc)

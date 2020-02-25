@@ -2,7 +2,7 @@ const utils = require('./utils');
 const shortid = require('shortid');
 const userDao = require('./userDao');
 const  channelDao = {};
-
+//const _  = require('lodash');
 
 
 channelDao.uniqueChannel = async (channel, channeldb) => {
@@ -141,9 +141,13 @@ channelDao.addMemberToChannel = async (channelid, user, rights, apidb) => {
     const channel = await apidb.get(channelid);
     if(!channel) return false;
 
-    if(!channel.members) project.members = [];
+    if(!channel.members) project.members = {};
+    //Test and make sure that this is working
+    channel.members = channel.members.filter(doc => doc.id !== user.id);
+    //channel.members = _.remove(channel.members, doc => doc.id === user.id);
     channel.members.push({id: user.id, username: user.username, rights});
-
+    channel.updated = Date.now();
+    //channel.members = _.unionBy(channel.members, 'id');
     const res = await apidb.insert(channel);
     if(res.ok) return true;
     return false;
@@ -155,11 +159,11 @@ channelDao.addMemberToChannel = async (channelid, user, rights, apidb) => {
 
 }
 
-channelDao.getChannel = async (channel, channeldb) => {
+channelDao.getChannel = async (channel, apidb) => {
   try {
     //create id
     const id = generateChannelId(channel)
-    const doc = await channeldb.get(id);
+    const doc = await apidb.get(id);
     console.log(channel);
     return doc
   }
@@ -215,7 +219,7 @@ channelDao.saveMewChannel = async (user, app, name, doc, channeldb, userdb) => {
     }
       
     return utils.getRessult(true, {channel, 
-      doc: formatChannelDocForExport(ddoc)});
+      doc: utils.formatDocForExport(ddoc)});
   }
   catch(e){
     console.log('Save Channel Error: ', e);
@@ -223,5 +227,32 @@ channelDao.saveMewChannel = async (user, app, name, doc, channeldb, userdb) => {
   } 
 }
 
+
+
+channelDao.saveNewSystemDoc = async (user, channel, type, secondaryType, doc, apidb) => {
+  try{
+    const id = utils.getChannelSystemDocId(channel, type, secondaryType);
+
+    console.log('Saving New System Doc: ', channel );
+    const ddoc = Object.assign(doc, { 
+      _id: id, 
+      creator: user.id, 
+      updated: Date.now(),
+      channel,
+      type,
+      date: Date.now()
+    });
+    const res = await apidb.insert(utils.checkDocStructureBeforeSave(ddoc));
+    console.log(res);
+    if(res.ok != true)
+      return getChannelError();
+      return utils.getRessult(true, utils.formatDocForExport(ddoc));
+    
+  }
+  catch(e){
+    console.log('Save Channel Error: ', e);
+    return getChannelError();
+  } 
+}
 
 module.exports = channelDao;

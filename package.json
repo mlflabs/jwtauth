@@ -4,8 +4,8 @@
   "description": "MLF auth server",
   "main": "app.js",
   "scripts": {
-    "test": "jest",
-    "test:watch": "jest --watch"
+    "test": "mocha",
+    "test:watch": "mocha --watch"
   },
   "author": "Mike",
   "license": "ISC",
@@ -19,6 +19,7 @@
     "express": "^4.16.4",
     "express-validator": "^6.4.0",
     "jsonwebtoken": "^8.4.0",
+    "lodash": "^4.17.15",
     "nano": "^7.1.1",
     "path": "^0.12.7",
     "shortid": "^2.2.15"
@@ -26,7 +27,11 @@
   "devDependencies": {
     "babel-cli": "^6.26.0",
     "babel-preset-env": "^1.7.0",
+    "chai": "^4.2.0",
+    "chai-http": "^4.3.0",
+    "frisby": "^2.1.2",
     "jest": "^25.1.0",
+    "mocha": "^7.0.1",
     "superagent": "^5.2.1",
     "supertest": "^4.0.2"
   }

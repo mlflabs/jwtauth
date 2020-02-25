@@ -3,6 +3,11 @@ const userDao = require('./userDao');
 
 const utils = {}
 
+const DIV = process.env.DIV;
+const CHANNEL_SUFFIX = process.env.CHANNEL_SUFFIX; 
+const CHANNEL_SYSTEM_DOC = process.env.CHANNEL_SYSTEM_DOC;
+const CHANNEL_USER_PREFIX = process.env.CHANNEL_USER_PREFIX;
+
 utils.sendRes = (res, msg = "", data={}) => {
   return res.json({...{success: true, msg}, ...data});
 }
@@ -66,17 +71,22 @@ utils.getTokenPayload =  (token) => {
       3.  (Project children edit) 0 -can't edit, 1 can edit/make own, 2 can edit all 
     */
 
+
+
+
+
 utils.isAdmin = (rights) => {
   if(rights.substring(0,1)=== '1') return true;
   return false;
 }
 
-utils.isChannel = (id) => {
-
+utils.isChannelParentDoc = (id) => {
+  return (id.endsWith(CHANNEL_SUFFIX));
 }
 
-const DIV = process.env.DIV;
-const CHANNEL_SUFFIX = process.env.CHANNEL_SUFFIX; 
+utils.isSystemDoc = (id) => {
+  return (id.endsWith(CHANNEL_SYSTEM_DOC));
+}
 
 utils.canEditChannel = (rights) => {
   if(rights.substring(0,1)=== '1') return true;
@@ -94,19 +104,27 @@ utils.canEditChildItem = (item, rights, id) => {
 }
 
 utils.getUserChannelNameFromUser = (user) => {
-  return  process.env.CHANNEL_USER_PREFIX + 
+  return  CHANNEL_USER_PREFIX + 
           user.app + user.id;
 }
 
 utils.getUserChannelName = (id, app) => {
-  return  process.env.CHANNEL_USER_PREFIX + 
-          app + id;
+  return  CHANNEL_USER_PREFIX + app + id;
 }
 
 utils.getChannelDocId = (channel) => {
-  return  channel +  
-          process.env.DIV +
-          process.env.CHANNEL_SUFFIX;
+  return  channel + DIV + CHANNEL_SUFFIX;
+}
+
+utils.getChannelFromChannelDocId = (channelid) => {
+  return channelid.split(DIV)[0];
+}
+
+utils.getChannelSystemDocId = (channelid, type, secondaryType) => {
+  let type2 = '';
+  if(secondaryType) type2 = secondaryType + DIV;
+  return  channelid + DIV + type + DIV +  type2 + Date.now() +
+          DIV + CHANNEL_SYSTEM_DOC;
 }
 
 utils.checkDocStructureBeforeSave = (doc) => {
@@ -117,5 +135,15 @@ utils.checkDocStructureBeforeSave = (doc) => {
   return doc;
 }
 
+
+utils.formatDocForExport = (doc) => {
+  if(!doc.id) doc.id = doc._id
+    delete doc._rev;
+    delete doc._id;
+    delete doc.uuid;
+    delete doc.channel;
+    doc.dirty = 0;
+  return Object.assign({}, doc);
+}
 
 module.exports = utils;

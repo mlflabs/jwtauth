@@ -14,7 +14,7 @@ nano.db.create(process.env.CHANNEL_DB)
 
 
 
-  // Messages Database
+  // API Database
   nano.db.create(process.env.API_DB)
   .then((body) => {
     console.log('database ' + process.env.API_DB + ' created!');
@@ -39,6 +39,17 @@ nano.db.create(process.env.CHANNEL_DB)
   });
 
 
+  // Social Database
+  nano.db.create(process.env.SOCIAL_DB)
+  .then((body) => {
+    console.log('database ' + process.env.SOCIAL_DB + ' created!');
+  })
+  .catch(err => {
+    console.log('Preping Database: ', err.message);
+  });
+
+
+
 
   // User database
   nano.db.create(process.env.USER_DB)
@@ -50,7 +61,8 @@ nano.db.create(process.env.CHANNEL_DB)
       userdb.createIndex({
         index: {
           fields: ['email'],
-        }
+        },
+        name: 'emailindex'
       });
     }
     catch(e){
@@ -60,7 +72,8 @@ nano.db.create(process.env.CHANNEL_DB)
       userdb.createIndex({
         index: {
           fields: ['username'],
-        }
+        },
+        name: 'usernameindex'
       });
     }
     catch(e){
