@@ -90,6 +90,7 @@ router.post('/login', [
                     token: token,
                     app: app,
                     expires: exp, 
+                    [process.env.ACCESS_META_KEY]: auth[process.env.ACCESS_META_KEY], 
                     username: auth.user.username,
                     id: auth.user._id,
                     email: auth.user.email });
@@ -127,7 +128,7 @@ router.post('/renewToken', [
 
     
     return res.json({ token: tokenres.token,
-                      channels: userdoc[process.env.ACCESS_META_KEY],
+                      ch: userdoc[process.env.ACCESS_META_KEY],
                       app: payload.app,
                       expires: tokenres.exp, 
                       username: userdoc.username, // TODO: remove in future

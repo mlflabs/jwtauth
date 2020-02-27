@@ -1,27 +1,28 @@
+
+//$FlowFixMe
 const nano = require('nano')('http://mike:pass@localhost:5984');
+//$FlowFixMe
 const frisby = require('frisby');
 
 class Data {
-  constructor() {
-    this.test1 = {};
-    this.test2 = {};
-    this.test3 = {};
-    this.test4 = {};
-    this.test5 = {};
 
-    this.nano = nano;
-    this.auth_base_url = 'http://localhost:3002';
-    this.sync_base_url = 'http://localhost:3002';
-    this.usersDatabaseName = 'a_users';
-    this.channelDatabaseName = 'a_channels';
-    this.apiDatabaseName = 'a';
+  test1 = {};
+  test2 = {};
+  test3 = {};
+  test4 = {};
+  test5 = {};
 
-    this.userdb = nano.db.use(this.usersDatabaseName);
-    this.channeldb = nano.db.use(this.channelDatabaseName);
-    this.apidb = nano.db.use(this.apiDatabaseName);
+  nano = nano;
+  auth_base_url = 'http://localhost:3002';
+  sync_base_url = 'http://localhost:3002';
+  usersDatabaseName = 'a_users';
+  channelDatabaseName = 'a_channels';
+  apiDatabaseName = 'a';
 
+  userdb = nano.db.use(this.usersDatabaseName);
+  channeldb = nano.db.use(this.channelDatabaseName);
+  apidb = nano.db.use(this.apiDatabaseName);
 
-  };
 
   async refreshTokens() {
     await loadUsers();

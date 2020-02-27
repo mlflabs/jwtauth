@@ -1,6 +1,9 @@
+// flowlint sketchy-null:off
+// flowlint untyped-type-import:off
+// flowlint sketchy-null:off
 const frisby = require('frisby');
-
-const data = require('../__tests_all/testDataValues')
+//$FlowFixMe
+const data = require('../__tests_all/testDataValues').default
 
 const auth = () => {
     describe('AUTH System', () => {

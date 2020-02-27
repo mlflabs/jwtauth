@@ -73,7 +73,12 @@ utils.getTokenPayload =  (token) => {
 
 
 
-
+utils.getUserRightsChannelForDoc = (user, channel) => {
+  if(user[CHANNEL_SUFFIX] && user[CHANNEL_SUFFIX][channel]){
+    return user[CHANNEL_SUFFIX][channel];
+  }
+  return false;
+}
 
 utils.isAdmin = (rights) => {
   if(rights.substring(0,1)=== '1') return true;
@@ -125,6 +130,17 @@ utils.getChannelSystemDocId = (channelid, type, secondaryType) => {
   if(secondaryType) type2 = secondaryType + DIV;
   return  channelid + DIV + type + DIV +  type2 + Date.now() +
           DIV + CHANNEL_SYSTEM_DOC;
+}
+
+utils.prepareDocForSave = (doc) => {
+  doc.updated = Date.now();
+  doc.dirty = 0;
+  if(!doc.rev) 
+    doc.rev = 1 
+  else 
+    doc.rev++;
+  
+  return doc;
 }
 
 utils.checkDocStructureBeforeSave = (doc) => {

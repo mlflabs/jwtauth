@@ -126,7 +126,7 @@ syncDao.saveDocs = async (docs, user, apidb) => {
       for(let x = 0; x < docs[channel].length; x++) {
         //if its system doc continue
         newdoc = docs[channel][x];
-        newdoc = await formatDocForInternalProcessing(newdoc, channel, apidb);
+        newdoc = await formatDocForInternalProcessing(newdoc, channel);
         if(!newdoc) continue;
         newdoc = await canEditDocAndFormatForSave(newdoc, perms, timestamp,  apidb);
         //if(!newdoc) continue;

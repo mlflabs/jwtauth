@@ -1,5 +1,5 @@
 const frisby = require('frisby');
-const data = require('./testDataValues')
+const data = require('./testDataValues').default
 
 const todos = async () => {
           //console.log(data);

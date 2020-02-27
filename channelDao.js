@@ -20,14 +20,6 @@ channelDao.uniqueChannel = async (channel, channeldb) => {
   }
 }
 
-const formatChannelDocForExport = (doc) => {
-  doc.id = doc._id;
-  doc.dirty = 0;
-  delete doc._id;
-  //Todo: any other modifications?
-  return doc;
-}
-
 const generateChannelId = (channel) => {
   return channel + process.env.DIV + process.env.CHANNEL_SUFFIX;
 }
@@ -156,6 +148,32 @@ channelDao.addMemberToChannel = async (channelid, user, rights, apidb) => {
     console.log(e);
     return false;
   }
+
+}
+
+channelDao.getSysDoc = async (id, apidb) => {
+  try {
+    const doc = await apidb.get(id);
+    console.log(doc, id);
+    return doc
+  }
+  catch(e){
+    console.log(e);
+    return null;
+  }
+}
+
+
+
+
+channelDao.saveDefault = async (doc, channeldb) => {
+    const ddoc = utils.checkDocStructureBeforeSave(
+                    utils.prepareDocForSave(doc));
+    const res = await channeldb.insert(ddoc);
+    if(res.ok == true)
+      return utils.formatDocForExport(ddoc);
+    
+    throw new Error("System error, couldn't save document");
 
 }
 

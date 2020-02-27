@@ -1,5 +1,5 @@
 const frisby = require('frisby');
-const data = require('../__tests_all/testDataValues')
+const data = require('../__tests_all/testDataValues').default
 const todos = require('../__tests_all/todo');
 const parties = require('../__tests_all/parties');
 
