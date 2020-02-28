@@ -7,12 +7,13 @@ const userDao = require('../userDao');
 const router = express.Router();
 
 
+//$FlowFixMe
 router.get('/', (req, res) =>{
   res.send('Auth System');
 }); 
 
 
-
+//$FlowFixMe
 router.post('/addNewSystemDoc', [
   body('token', 'No token given').trim().isLength({ min: 3 }).bail(),
   body('channelid', 'channelid required').trim().isLength({ min: 3 }).bail(),
@@ -20,7 +21,7 @@ router.post('/addNewSystemDoc', [
   body('doctype', 'Doc type is required').notEmpty().bail(),
   body('token', 'Token is not valid')
     .custom( async (value, {req}) => {
-      const res = await utils.checkProperToken(value, req.app.userdb);
+      const res = await utils.checkProperToken(value);
       if(res.ok) {
         req.user = res.data;
         return true;
@@ -67,12 +68,13 @@ router.post('/addNewSystemDoc', [
 });
 
 
+//$FlowFixMe
 router.post('/addNewChannel', [
   body('token', 'No token given').trim().isLength({ min: 3 }).bail(),
   body('name', 'Channel Name is required').trim().isLength({min:3}).bail(),
   body('token', 'Token is not valid')
     .custom( async (value, {req}) => {
-      const res = await utils.checkProperToken(value, req.app.userdb);
+      const res = await utils.checkProperToken(value);
       if(res.ok) {
         req.user = res.data;
         return true;
@@ -107,7 +109,7 @@ router.post('/addNewChannel', [
   }
 });
 
-
+//$FlowFixMe
 router.post('/sendAddMemberRequest', [
   body('token', 'No token given').trim().isLength({ min: 3 }).bail(),
   body('channelid','Channel required').trim().isLength({ min: 3 }).trim().escape().bail(), 
@@ -186,7 +188,7 @@ router.post('/sendAddMemberRequest', [
       return utils.sendError('duplicate', 'Request for this memeber has alread been sent.', res);
 
     const date = Date.now();
-    resRequest = await channelDao.saveAddNewMemberRequest(friend._id,
+    const resRequest = await channelDao.saveAddNewMemberRequest(friend._id,
       { type: 'addmember', 
         host: user.id,
         date, 
@@ -194,15 +196,15 @@ router.post('/sendAddMemberRequest', [
         channel: channel, 
         rights: rights }, req.app.channeldb);
     
-    msgRes = await messagesDao.sendMessageToUser(friend._id, user.app,
+    await messagesDao.sendMessageToUser(friend._id, user.app,
                 messagesDao.getMsgObject(user.username, 'channelinvite', '',
                 '', {channel: channel, name: req.channelDoc.name, date}), req.app.apidb);
 
-    msgRes = await messagesDao.sendMessageToUser(user.id, user.app,
+    await messagesDao.sendMessageToUser(user.id, user.app,
                 messagesDao.getMsgObject('system','event', '', 
                 'Invite has been send to '+friend.username, {channel: channel, name: req.channelDoc.name, date}), req.app.apidb);
 
-    if(!resRequest || !msgRes){
+    if(!resRequest){
       return res.status(422).json({ errors: [{
           location: 'Database',
           code: 362,
@@ -226,13 +228,13 @@ router.post('/sendAddMemberRequest', [
 });
 
 
-
+//$FlowFixMe
 router.post('/acceptChannelInvitation', [
   body('token', 'No token given').trim().isLength({ min: 3 }).bail(),
   body('msgId','Message id required').trim().isLength({ min: 3 }).trim().escape().bail(), 
   body('token', 'Token is not valid')
     .custom( async (value, {req}) => {
-      const res = await utils.checkProperToken(value, req.app.userdb);
+      const res = await utils.checkProperToken(value);
       if(res.ok) {
         req.userDoc = res.data;
         return true;

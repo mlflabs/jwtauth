@@ -21,6 +21,7 @@ channelDao.uniqueChannel = async (channel, channeldb) => {
 }
 
 const generateChannelId = (channel) => {
+  //$FlowFixMe
   return channel + process.env.DIV + process.env.CHANNEL_SUFFIX;
 }
 
@@ -133,7 +134,7 @@ channelDao.addMemberToChannel = async (channelid, user, rights, apidb) => {
     const channel = await apidb.get(channelid);
     if(!channel) return false;
 
-    if(!channel.members) project.members = {};
+    if(!channel.members) channel.members = {};
     //Test and make sure that this is working
     channel.members = channel.members.filter(doc => doc.id !== user.id);
     //channel.members = _.remove(channel.members, doc => doc.id === user.id);

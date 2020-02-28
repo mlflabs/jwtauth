@@ -9,6 +9,7 @@ messagesDao.getMsgObject = (from, messageType, messageSubType, message, data) =>
 }
 
 const getUserMessageId = (userid, app, timestamp) => {
+  //$FlowFixMe
   return  utils.getUserChannelName(userid, app) +
           process.env.DIV + 'msg' + 
           process.env.DIV + timestamp + 
@@ -16,6 +17,7 @@ const getUserMessageId = (userid, app, timestamp) => {
 }
 
 const getChannelMessageId = (channelid, timestamp) => {
+  //$FlowFixMe
   return  channelid +
           process.env.DIV + 'msg' + 
           process.env.DIV + timestamp + 
@@ -30,7 +32,7 @@ messagesDao.sendMessageToUser = async (toId, app,  msg, messagesdb) => {
       created: timestamp,
       updated: timestamp,
       type: process.env.DOC_TYPE_MSG,
-      channel:  utils.getUserChannelName(toId, app, timestamp)
+      channel:  utils.getUserChannelName(toId, app)
     }, ...msg}
     const res = await messagesdb.insert(utils.checkDocStructureBeforeSave(doc));
     if(res.ok) return true;

@@ -1,15 +1,19 @@
 const frisby = require('frisby');
-const data = require('./testDataValues').default
+const data = require('./testDataValues')
 
 const todos = async () => {
           //console.log(data);
-          res = await frisby.post(data.auth_base_url+ '/sync/sync', {
+          //$FlowFixMe
+          let res = await frisby.post(data.auth_base_url+ '/sync/sync', {
+          //$FlowFixMe
           token: data.test1.token,
           data: {
             channels: {
+              //$FlowFixMe
               ['u'+data.test1.app+data.test1.id]: [
                 {
                   done: false,
+                  //$FlowFixMe
                   id: 'u'+data.test1.app+data.test1.id+ ".todo.tw1cb5o3",
                   created: 1582110379375,
                   updated: 1582110379375,
@@ -26,6 +30,7 @@ const todos = async () => {
                 },
                 {
                   done: false,
+                  //$FlowFixMe
                   id: 'u'+data.test1.app+data.test1.id+ ".todo.tw1cb5o2",
                   created: 1582110379375,
                   updated: 1582110379375,
@@ -42,6 +47,7 @@ const todos = async () => {
                 },
                 {
                   done: false,
+                  //$FlowFixMe
                   id: 'u'+data.test1.app+data.test1.id+ ".todo.tw1cb5o1",
                   created: 1582110379375,
                   updated: 1582110379375,

@@ -1,4 +1,6 @@
+//$FlowFixMe
 const frisby = require('frisby');
+//$FlowFixMe
 const data = require('./testDataValues').default
 
 
@@ -27,15 +29,16 @@ beforeAll(async () => {
   try {
     await data.nano.db.create(data.usersDatabaseName)
     const db = data.nano.db.use(data.usersDatabaseName);
-    await userdb.createIndex({index: {fields: ['email'],}});
-    await userdb.createIndex({ index: { fields: ['username'] }});
+    await db.createIndex({index: {fields: ['email'],}});
+    await db.createIndex({ index: { fields: ['username'] }});
   }
   catch(e) {
     console.log(e.message)
   }
-  
+  let res;
 
   //create users
+  //$FlowFixMe
   res = await frisby.post(data.auth_base_url+ '/auth/register', {
     password:'pass',
     username:'test1',
@@ -43,24 +46,28 @@ beforeAll(async () => {
   })    
 
    //user 2
+   //$FlowFixMe
    res = await frisby.post(data.auth_base_url+ '/auth/register', {
     password:'pass',
     username:'test2',
     email:'test2@test.com'
   })   
   //user 3
+  //$FlowFixMe
   res = await frisby.post(data.auth_base_url+ '/auth/register', {
     password:'pass',
     username:'test3',
     email:'test3@test.com'
   })   
   //user 4
+  //$FlowFixMe
   res = await frisby.post(data.auth_base_url+ '/auth/register', {
     password:'pass',
     username:'test4',
     email:'test4@test.com'
   })    
    //user 5
+   //$FlowFixMe
    res = await frisby.post(data.auth_base_url+ '/auth/register', {
     password:'pass',
     username:'test5',
@@ -72,7 +79,8 @@ beforeAll(async () => {
 
 describe('MLF System', () => {
   it('Full System Online ', async ()  => {
-      const res = await frisby.get(data.auth_base_url)
+    //$FlowFixMe
+    const res = await frisby.get(data.auth_base_url)
         .expect('status', 200);
       return res;  
     }

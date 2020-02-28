@@ -1,29 +1,31 @@
 const express = require('express');
 const utils = require('../utils');
+const utilsGamify = require('../utilsGamification');
 const { check, body, oneOf, validationResult } = require('express-validator');
 const channelDao = require('../channelDao');
 const messagesDao = require('../messagesDao');
 const userDao = require('../userDao');
 const projectDao = require('../projectDao');
+//$FlowFixMe
 const router = express.Router();
 
-
+//$FlowFixMe
 router.get('/', (req, res) =>{
   res.send('Habitville System');
 }); 
 
 
 const clearSysDocSensetiveData = (doc) => {
-  delete created;
-  delete updated;
-  delete _id;
-  delete id;
-  delete secondaryType;
-  delete type;
-  delete progress;
-  delete members;
-  delete creator;
-  return doc;
+  delete doc.created;
+  delete doc.updated;
+  delete doc._id;
+  delete doc.id;
+  delete doc.secondaryType;
+  delete doc.type;
+  delete doc.actions;
+  delete doc.members;
+  delete doc.creator;
+  return doc.doc;
 }
 
 const formatDate = (date) => {
@@ -49,7 +51,7 @@ const isChallengeDocId = (id) => {
 }
 
 const properToken = async (token, req) => {
-  const res = await utils.checkProperToken(token, req.app.userdb);
+  const res = await utils.checkProperToken(token);
       if(res.ok) {
         req.user = res.data;
         return true;
@@ -92,7 +94,7 @@ const canEditChallengeMember = async (id, req) => {
   req.challengeDoc = res;     
 }
 
-
+//$FlowFixMe
 router.post('/acceptChallenge', [
   body('token', 'No token given').trim().isLength({ min: 3 }).bail(),
   body('challengeid', 'Proper challenge id required').notEmpty().bail(),
@@ -145,7 +147,7 @@ router.post('/acceptChallenge', [
 });
 
 
-
+//$FlowFixMe
 router.post('/changeChallengeState', [
   body('token', 'No token given').trim().isLength({ min: 3 }).bail(),
   body('challengeid', 'Proper challenge id required').notEmpty().bail(),
@@ -186,18 +188,28 @@ router.post('/changeChallengeState', [
 });
 
 
-
-router.post('/submitChallengeProgress', [
+//$FlowFixMe
+router.post('/submitChallengeActions', [
   body('token', 'No token given').trim().isLength({ min: 3 }).bail(),
   body('challengeid', 'Proper challenge id required').notEmpty().bail(),
-  body('progress', 'State is required.').notEmpty().bail(),
+  body('actions', 'Array of actions is required.').notEmpty().bail(),
   body('token', 'Token is not valid')
   .custom( async (value, {req}) => {
     await properToken(value, req);
-}).bail(),
+  }).bail(),
   body('challengeid', '')
     .custom( async (value, {req}) => {
       await canEditChallengeMember(value, req);
+  }).bail(),
+  body('actions', '')
+    .custom( async (value, {req}) => {
+      //check if its array object
+      if(!Array.isArray(value))
+        throw new Error('Actions array is required')
+      value.forEach(action => {
+        if(!action.date) throw new Error('Actions are missing date.')
+        if(!action.value) throw new Error('Actions are missing value')
+      })
   }).bail(),
 ], async (req, res) => {
 
@@ -207,9 +219,10 @@ router.post('/submitChallengeProgress', [
   }
 
   try{
-    let doc = req.challengeDoc;
+    let challenge = req.challengeDoc;
     const member = req.member;
     const today = formatDate(Date.now());
+    const res = utilsGamify.calculateCurrentStreak(challenge, member, req.body.actions);
 
     member.progress.push({
       date:today,
@@ -217,8 +230,8 @@ router.post('/submitChallengeProgress', [
       reward:''
     });
 
-    const newdoc = await channelDao.saveDefault(doc, req.app.apidb);
-    return utils.sendRes(res, 'Challenge Saved, please wait a few minutes for a data sync.', {doc: newdoc});
+    //const newdoc = await channelDao.saveDefault(doc, req.app.apidb);
+    //return utils.sendRes(res, 'Challenge Saved, please wait a few minutes for a data sync.', {doc: newdoc});
   }
   catch(e){
     console.log('Adding new channel request error: ', e.message, e.name)
@@ -227,14 +240,14 @@ router.post('/submitChallengeProgress', [
 });
 
 
-
+//$FlowFixMe
 router.post('/editProject', [
   body('token', 'No token given').trim().isLength({ min: 3 }).bail(),
   body('id', 'docid required').trim().isLength({ min: 3 }).bail(),
   body('doc', 'doc with modified properties required').notEmpty().bail(),
   body('token', 'Token is not valid')
     .custom( async (value, {req}) => {
-      const res = await utils.checkProperToken(value, req.app.userdb);
+      const res = await utils.checkProperToken(value);
       if(res.ok) {
         req.user = res.data;
 

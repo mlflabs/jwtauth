@@ -15,10 +15,9 @@ userDao.encryptPassword = async (password) => {
 }
 
 userDao.saveUserBasic = async (username, email, password, userdb) => {
-
   const hashPass =  await bcrypt.hash(password, 10);
-  let id;
-  unique = false;
+  let id = '';
+  let unique = false;
   let tries = 0
   while(!unique) {
     const length = 4 + Math.floor(tries/5)
@@ -37,6 +36,7 @@ userDao.saveUserBasic = async (username, email, password, userdb) => {
     email: email,
     loginCode: Date.now(),
     role: 'user',
+    //$FlowFixMe
     [process.env.ACCESS_META_KEY]: {},
     strategies: {
       basic: {
@@ -225,7 +225,9 @@ userDao.authenticateLocal = async (username, email, password, userdb) => {
   }
 
   console.log('User ', user);
+  
   const valid = await bcrypt.compare(password, 
+    //$FlowFixMe - its part of the user document.
     user.strategies.basic.password);
   console.log('Valid: ', valid);
   if(!valid)

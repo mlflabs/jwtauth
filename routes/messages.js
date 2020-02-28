@@ -6,7 +6,7 @@ const messagesDao = require('../messagesDao');
 const userDao = require('../userDao');
 const router = express.Router();
 
-
+//$FlowFixMe
 router.get('/', (req, res) =>{
   res.send('Message System');
 }); 

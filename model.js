@@ -1,7 +1,5 @@
-
+/*
 const bcrypt = require('bcrypt');
-const Schema = mongoose.Schema;
-
 
 export class  UserDoc {
   _id;
@@ -38,3 +36,4 @@ export class  UserDoc {
   }
 };
 
+*/

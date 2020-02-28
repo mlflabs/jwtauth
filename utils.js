@@ -37,9 +37,10 @@ utils.checkProperToken = async (token) => {
   try {
     const payload = jwt.verify(token, process.env.TOKEN_SECRET)
     console.log('PAYLOAD:: ', payload);
+    //$FlowFixMe   - refresh is our custom prop to hold date for refreshing
     if(Date.now() > Number(payload.refresh)){
       return utils.getRessult(false, null, [utils.getError('token', 
-        'Token expired.', 401)]);
+        'Token expired.'), 401]);
     }
 
     return utils.getRessult(true, payload)
@@ -118,6 +119,7 @@ utils.getUserChannelName = (id, app) => {
 }
 
 utils.getChannelDocId = (channel) => {
+  //$FlowFixMe
   return  channel + DIV + CHANNEL_SUFFIX;
 }
 
@@ -128,6 +130,7 @@ utils.getChannelFromChannelDocId = (channelid) => {
 utils.getChannelSystemDocId = (channelid, type, secondaryType) => {
   let type2 = '';
   if(secondaryType) type2 = secondaryType + DIV;
+  //$FlowFixMe
   return  channelid + DIV + type + DIV +  type2 + Date.now() +
           DIV + CHANNEL_SYSTEM_DOC;
 }

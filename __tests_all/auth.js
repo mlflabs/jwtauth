@@ -1,6 +1,4 @@
-// flowlint sketchy-null:off
-// flowlint untyped-type-import:off
-// flowlint sketchy-null:off
+
 const frisby = require('frisby');
 //$FlowFixMe
 const data = require('../__tests_all/testDataValues').default
@@ -8,6 +6,7 @@ const data = require('../__tests_all/testDataValues').default
 const auth = () => {
     describe('AUTH System', () => {
       it('Auth Test', async ()  => {
+        //$FlowFixMe
           const res = await frisby.get(data.auth_base_url+ '/auth')
             .expect('status', 200);
           return res;  
@@ -15,7 +14,8 @@ const auth = () => {
       );
 
       it('Auth Incorect Calls', async ()  => {
-          let res = frisby.post(data.auth_base_url+ '/auth/register', {
+        //$FlowFixMe
+        let res = frisby.post(data.auth_base_url+ '/auth/register', {
             password:'123',
             username:'test',
             email:'test123'
@@ -23,6 +23,7 @@ const auth = () => {
         })
 
         it('Auth Incorect Calls - Email', async ()  => {
+          //$FlowFixMe
           let res = frisby.post(data.auth_base_url+ '/auth/register', {
             password:'12332',
             username:'test1234',
@@ -32,15 +33,15 @@ const auth = () => {
 
         it('Auth Create test users', async ()  => {
             
-
-            res = await frisby.post(data.auth_base_url+ '/auth/register', {
+            //$FlowFixMe
+            let res = await frisby.post(data.auth_base_url+ '/auth/register', {
                 password:'pass',
                 username:'test1',
                 email:'test11@test.com'
               })    
               expect(res.json.success).toBe(false);
               expect(res.status).toBe(422);
-
+              //$FlowFixMe
               res = await frisby.post(data.auth_base_url+ '/auth/register', {
                 password:'pass',
                 username:'test11',
@@ -52,7 +53,8 @@ const auth = () => {
         })
 
         it('Auth login - no app', async ()  => {
-          res = await frisby.post(data.auth_base_url+ '/auth/login', {
+          //$FlowFixMe
+          let res = await frisby.post(data.auth_base_url+ '/auth/login', {
             id:'test',
             password:'pass',
             
@@ -62,7 +64,8 @@ const auth = () => {
         })
 
         it('Auth login - wrong info', async ()  => {
-          res = await frisby.post(data.auth_base_url+ '/auth/login', {
+          //$FlowFixMe
+          let res = await frisby.post(data.auth_base_url+ '/auth/login', {
             id:'test32',
             password:'pass',
             app: 'hv',
@@ -72,7 +75,8 @@ const auth = () => {
         })
 
         it('Auth login - wrong info', async ()  => {
-          res = await frisby.post(data.auth_base_url+ '/auth/login', {
+          //$FlowFixMe
+          let res = await frisby.post(data.auth_base_url+ '/auth/login', {
             id:'test222@test.com',
             password:'pass',
             app: 'hv',
@@ -82,7 +86,8 @@ const auth = () => {
         })
 
         it('Auth login - email wrong pass', async ()  => {
-          res = await frisby.post(data.auth_base_url+ '/auth/login', {
+          //$FlowFixMe
+          let res = await frisby.post(data.auth_base_url+ '/auth/login', {
             id:'test1@test.com',
             password:'pass1',
             app: 'hv',
@@ -92,7 +97,8 @@ const auth = () => {
         })
 
         it('Auth login - username wrong pass', async ()  => {
-          res = await frisby.post(data.auth_base_url+ '/auth/login', {
+          //$FlowFixMe
+          let res = await frisby.post(data.auth_base_url+ '/auth/login', {
             id:'test1',
             password:'pass1',
             app: 'hv',

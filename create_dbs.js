@@ -6,6 +6,7 @@ const createDatabases = (nano) => {
 // Channels Database
 nano.db.create(process.env.CHANNEL_DB)
   .then((body) => {
+    //$FlowFixMe
     console.log('database ' + process.env.CHANNEL_DB + ' created!');
   })
   .catch(err => {
@@ -17,6 +18,7 @@ nano.db.create(process.env.CHANNEL_DB)
   // API Database
   nano.db.create(process.env.API_DB)
   .then((body) => {
+    //$FlowFixMe
     console.log('database ' + process.env.API_DB + ' created!');
     const db = nano.db.use(process.env.API_DB);
     try{
@@ -42,6 +44,7 @@ nano.db.create(process.env.CHANNEL_DB)
   // Social Database
   nano.db.create(process.env.SOCIAL_DB)
   .then((body) => {
+    //$FlowFixMe
     console.log('database ' + process.env.SOCIAL_DB + ' created!');
   })
   .catch(err => {
@@ -54,6 +57,7 @@ nano.db.create(process.env.CHANNEL_DB)
   // User database
   nano.db.create(process.env.USER_DB)
   .then((body) => {
+    //$FlowFixMe
     console.log('database ' + process.env.USER_DB + ' created!');
     const userdb = nano.db.use(process.env.USER_DB);
     try{

@@ -37,6 +37,7 @@
     "babel-preset-env": "^1.7.0",
     "chai": "^4.2.0",
     "chai-http": "^4.3.0",
+    "flow-bin": "^0.119.1",
     "flow-remove-types": "^2.119.1",
     "flow-typed": "^3.0.0",
     "frisby": "^2.1.2",

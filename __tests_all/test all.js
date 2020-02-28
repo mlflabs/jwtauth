@@ -1,5 +1,5 @@
 const frisby = require('frisby');
-const data = require('../__tests_all/testDataValues').default
+const data = require('../__tests_all/testDataValues')
 const todos = require('../__tests_all/todo');
 const parties = require('../__tests_all/parties');
 
@@ -8,14 +8,20 @@ jest.setTimeout(1000 * 60 * 10 * 1000);
 beforeAll(async () => {
   console.log('Re-Setting databases')
   // delete all the contents of db
+  //$FlowFixMe
   await data.nano.db.destroy(data.usersDatabaseName)
+  //$FlowFixMe
   await data.nano.db.destroy(data.channelDatabaseName)
+  //$FlowFixMe
   await data.nano.db.destroy(data.apiDatabaseName)
   // create brand new databases
   console.log('Creating Databases');
+  //$FlowFixMe
   await data.nano.db.create(data.channelDatabaseName)
   try {
+    //$FlowFixMe
     await data.nano.db.create(data.apiDatabaseName);
+    //$FlowFixMe
     const db = data.nano.db.use(data.apiDatabaseName);
     await db.createIndex( { index: { fields: ['channel', 'updated'],},
                             name: 'timestampindex'
@@ -26,7 +32,9 @@ beforeAll(async () => {
   }
 
   try {
+    //$FlowFixMe
     await data.nano.db.create(data.usersDatabaseName)
+    //$FlowFixMe
     const db = data.nano.db.use(data.usersDatabaseName);
     await db.createIndex({index: {fields: ['email'],}, name:'emailindex'});
     await db.createIndex({ index: { fields: ['username'] }, name: 'usernameindex'});
@@ -37,6 +45,7 @@ beforeAll(async () => {
   
 
   //create users
+  //$FlowFixMe
   res = await frisby.post(data.auth_base_url+ '/auth/register', {
     password:'pass',
     username:'test1',
@@ -44,24 +53,28 @@ beforeAll(async () => {
   })    
 
    //user 2
+   //$FlowFixMe
    res = await frisby.post(data.auth_base_url+ '/auth/register', {
     password:'pass',
     username:'test2',
     email:'test2@test.com'
   })   
   //user 3
+  //$FlowFixMe
   res = await frisby.post(data.auth_base_url+ '/auth/register', {
     password:'pass',
     username:'test3',
     email:'test3@test.com'
   })   
   //user 4
+  //$FlowFixMe
   res = await frisby.post(data.auth_base_url+ '/auth/register', {
     password:'pass',
     username:'test4',
     email:'test4@test.com'
   })    
    //user 5
+   //$FlowFixMe
    res = await frisby.post(data.auth_base_url+ '/auth/register', {
     password:'pass',
     username:'test5',
@@ -72,6 +85,7 @@ beforeAll(async () => {
 });
 
   it('Full System Online ', async ()  => {
+      //$FlowFixMe
       const res = await frisby.get(data.auth_base_url)
         .expect('status', 200);
       return res;  

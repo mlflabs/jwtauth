@@ -9,18 +9,18 @@ const socialDao = require('../socialDao');
 const projectDao = require('../projectDao');
 const router = express.Router();
 
-
+//$FlowFixMe
 router.get('/', (req, res) =>{
   res.send('MLF Social');
 }); 
 
-
+//$FlowFixMe
 router.post('/acceptFriendInvitation', [
   body('token', 'No token given').trim().isLength({ min: 3 }).bail(),
   body('msgId','Message id required').trim().isLength({ min: 3 }).trim().escape().bail(), 
   body('token', 'Token is not valid')
     .custom( async (value, {req}) => {
-      const res = await utils.checkProperToken(value, req.app.userdb);
+      const res = await utils.checkProperToken(value);
       if(res.ok) {
         req.userDoc = res.data;
         return true;
@@ -97,7 +97,7 @@ router.post('/acceptFriendInvitation', [
 });
 
 
-
+//$FlowFixMe
 router.post('/sendAddFriendRequest', [
   body('token', 'No token given').trim().isLength({ min: 3 }).bail(),
   body('username', 'Username of friend is required').trim().isLength({ min: 3 }).trim().escape().bail(),
@@ -145,21 +145,21 @@ router.post('/sendAddFriendRequest', [
       return utils.sendError('duplicate', 'Request for this friend has alread been sent.', res);
 
     const date = Date.now();
-    resRequest = await channelDao.saveAddNewMemberRequest(friend._id,
+    const resRequest = await channelDao.saveAddNewMemberRequest(friend._id,
       { type: 'addfriend', 
         host: user.id,
         date, 
         channel: channel }, req.app.channeldb);
     
-    msgRes = await messagesDao.sendMessageToUser(friend._id, user.app,
+    await messagesDao.sendMessageToUser(friend._id, user.app,
                 messagesDao.getMsgObject(user.username, 'friendinvite', '',
                 '',{}), req.app.apidb);
 
-    msgRes = await messagesDao.sendMessageToUser(user.id, user.app,
+    await messagesDao.sendMessageToUser(user.id, user.app,
                 messagesDao.getMsgObject('system','event', '', 
                 'Invite has been send to '+friend.username, {}), req.app.apidb);
 
-    if(!resRequest || !msgRes){
+    if(!resRequest){
       return res.status(422).json({ errors: [{
           location: 'Database',
           code: 362,

@@ -10,7 +10,7 @@ const syncDao = require('../syncDao');
 //setting docs
 
 
-
+//$FlowFixMe
 router.get('/', (req, res) =>{
   res.send('Sync Api');
 }); 
@@ -18,14 +18,14 @@ router.get('/', (req, res) =>{
 
 
 
-
+//$FlowFixMe
 router.post('/sync',[
   body('token', 'No token given').trim().isLength({ min: 3 }).bail(),
   body('data', 'Data required, please send blank array if none').notEmpty().bail(),
-  
   body('token', 'Token is not valid')
     .custom( async (value, {req}) => {
-      const res = await utils.checkProperToken(value, req.app.userdb);
+      //$FlowFixMe
+      const res = await utils.checkProperToken(value);
       if(res.ok) {
         req.user = res.data;
         req.sendername = res.data.username;

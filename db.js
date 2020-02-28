@@ -4,19 +4,17 @@ const messagesDao = require('./messagesDao');
 const socialDao = require('./socialDao');
 
 class DB {
-  constructor() {
-    
-    this.nano = require('nano')(process.env.COUCHDB);
-    this.userdb = this.nano.db.use(process.env.USER_DB);
-    this.channeldb = this.nano.db.use(process.env.CHANNEL_DB);
-    this.apidb = this.nano.db.use(process.env.API_DB);
-    this.socialdb = this.nano.db.use(process.env.SOCIAL_DB);
+    nano = require('nano')(process.env.COUCHDB);
+    userdb = this.nano.db.use(process.env.USER_DB);
+    channeldb = this.nano.db.use(process.env.CHANNEL_DB);
+    apidb = this.nano.db.use(process.env.API_DB);
+    socialdb = this.nano.db.use(process.env.SOCIAL_DB);
 
-    this.userDao = userDao;
-    this.channelDao = channelDao;
-    this.messagesDao = messagesDao;
-    this.socialDao = socialDao;
-  }
+    userDao = userDao;
+    channelDao = channelDao;
+    messagesDao = messagesDao;
+    socialDao = socialDao;
+
 }
 
 const db = new DB();

@@ -1,5 +1,5 @@
 const frisby = require('frisby');
-const data = require('./testDataValues').default
+const data = require('./testDataValues')
 
 
 const parties = async () => {
@@ -10,7 +10,9 @@ const parties = async () => {
     //data.loadUsers();
 
     //Create our parties
+    //$FlowFixMe
     const p1 = await frisby.post(data.auth_base_url+ '/channels/addNewChannel', {
+      //$FlowFixMe
       token: data.test1.token,
       doc: {
         created: 1582116609701,
@@ -28,7 +30,9 @@ const parties = async () => {
       },
       name: "Cool Party",
     });
+    //$FlowFixMe
     const p2 = await frisby.post(data.auth_base_url+ '/channels/addNewChannel', {
+      //$FlowFixMe
       token: data.test1.token,
       doc: {
         created: 1582116609701,
@@ -46,7 +50,9 @@ const parties = async () => {
       },
       name: "Cool Party 2",
     });
+    //$FlowFixMe
     const p3 = await frisby.post(data.auth_base_url+ '/channels/addNewChannel', {
+      //$FlowFixMe
       token: data.test2.token,
       doc: {
         created: 1582116609701,
@@ -75,28 +81,40 @@ const parties = async () => {
     await data.refreshTokens();
 
     //send requests to join
+    //$FlowFixMe
     const u1r2 = await frisby.post(data.auth_base_url+ '/channels/sendAddMemberRequest', {
+      //$FlowFixMe
       token: data.test1.token,
       channelid: p1.json.channel,
+      //$FlowFixMe
       id: data.test2.id,
       rights: '0121',
     });
+    //$FlowFixMe
     const u1r3 = await frisby.post(data.auth_base_url+ '/channels/sendAddMemberRequest', {
+      //$FlowFixMe
       token: data.test1.token,
       channelid: p1.json.channel,
+      //$FlowFixMe
       id: data.test3.id,
       rights: '0121',
     });
+    //$FlowFixMe
     const u1r4 = await frisby.post(data.auth_base_url+ '/channels/sendAddMemberRequest', {
+      //$FlowFixMe
       token: data.test1.token,
       channelid: p1.json.channel,
+      //$FlowFixMe
       id: data.test4.id,
       rights: '0121',
     });
 
+    //$FlowFixMe
     const u2r1 = await frisby.post(data.auth_base_url+ '/channels/sendAddMemberRequest', {
+      //$FlowFixMe
       token: data.test2.token,
       channelid: p3.json.channel,
+      //$FlowFixMe
       id: data.test1.id,
       rights: '0121',
     });
@@ -107,26 +125,36 @@ const parties = async () => {
     expect(u2r1.status).toBe(200);
 
     //get messages from sync, see if we have joint party request
+    //$FlowFixMe
     const syncTest1 = await frisby.post(data.auth_base_url+ '/sync/sync', {
+      //$FlowFixMe
       token: data.test1.token,
       data: {},
     });
+    //$FlowFixMe
     const syncTest2 = await frisby.post(data.auth_base_url+ '/sync/sync', {
+      //$FlowFixMe
       token: data.test2.token,
       data: {},
     });
 
+    //$FlowFixMe
     const syncTest3 = await frisby.post(data.auth_base_url+ '/sync/sync', {
+      //$FlowFixMe
       token: data.test3.token,
       data: {},
     });
 
+    //$FlowFixMe
     const syncTest4 = await frisby.post(data.auth_base_url+ '/sync/sync', {
+      //$FlowFixMe
       token: data.test4.token,
       data: {},
     });
 
+    //$FlowFixMe
     const syncTest5 = await frisby.post(data.auth_base_url+ '/sync/sync', {
+      //$FlowFixMe
       token: data.test5.token,
       data: {},
     });
@@ -154,8 +182,10 @@ const parties = async () => {
     for(let i = 0; i < msgs1.length; i ++) {
       if(msgs1[i].messageType === 'channelinvite'){
         acceptInvite[msgs1[i].to] = 
+        //$FlowFixMe
           await frisby.post(data.auth_base_url+ '/channels/acceptChannelInvitation', 
           {
+            //$FlowFixMe
             token: data.test1.token,
             msgId: msgs1[i].id,
           });
@@ -164,8 +194,10 @@ const parties = async () => {
     for(let i = 0; i < msgs2.length; i ++) {
       if(msgs2[i].messageType === 'channelinvite'){
         acceptInvite[msgs2[i].to] = 
+          //$FlowFixMe
           await frisby.post(data.auth_base_url+ '/channels/acceptChannelInvitation', 
           {
+            //$FlowFixMe
             token: data.test2.token,
             msgId: msgs2[i].id,
           });
@@ -175,8 +207,10 @@ const parties = async () => {
     for(let i = 0; i < msgs3.length; i ++) {
       if(msgs3[i].messageType === 'channelinvite'){
         acceptInvite[msgs3[i].to] = 
+          //$FlowFixMe
           await frisby.post(data.auth_base_url+ '/channels/acceptChannelInvitation', 
           {
+            //$FlowFixMe
             token: data.test3.token,
             msgId: msgs3[i].id,
           });

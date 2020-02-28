@@ -1,9 +1,5 @@
-const shortid = require('shortid');
 
 const projectDao = {};
-
-//project members structure
-//project.members: [{id:###, username:###, rights: 1234}]
 
 projectDao.addMemberToProject = async (projectid, userDoc, rights, apidb) => {
   try {

@@ -19,8 +19,11 @@ class Data {
   channelDatabaseName = 'a_channels';
   apiDatabaseName = 'a';
 
+  //$FlowFixMe
   userdb = nano.db.use(this.usersDatabaseName);
+  //$FlowFixMe
   channeldb = nano.db.use(this.channelDatabaseName);
+  //$FlowFixMe
   apidb = nano.db.use(this.apiDatabaseName);
 
 
@@ -45,6 +48,7 @@ const createUsers = async () => {
 
   let res;
   //create users
+  //$FlowFixMe
   res = await frisby.post(data.auth_base_url+ '/auth/register', {
     password:'pass',
     username:'test1',
@@ -52,24 +56,28 @@ const createUsers = async () => {
   })    
 
    //user 2
+   //$FlowFixMe
    res = await frisby.post(data.auth_base_url+ '/auth/register', {
     password:'pass',
     username:'test2',
     email:'test2@test.com'
   })   
   //user 3
+  //$FlowFixMe
   res = await frisby.post(data.auth_base_url+ '/auth/register', {
     password:'pass',
     username:'test3',
     email:'test3@test.com'
   })   
   //user 4
+  //$FlowFixMe
   res = await frisby.post(data.auth_base_url+ '/auth/register', {
     password:'pass',
     username:'test4',
     email:'test4@test.com'
   })    
    //user 5
+   //$FlowFixMe
    res = await frisby.post(data.auth_base_url+ '/auth/register', {
     password:'pass',
     username:'test5',
@@ -81,6 +89,7 @@ const createUsers = async () => {
 const loadUsers = async () => {
   let res;
   // load all users
+  //$FlowFixMe
   res = await frisby.post(data.auth_base_url+ '/auth/login', {
         id:'test1',
         password:'pass',
@@ -89,7 +98,7 @@ const loadUsers = async () => {
   //console.log(res);
   data.test1 = {id: res.json.id, token: res.json.token, app: 'hv'}
 
-
+  //$FlowFixMe
   res = await frisby.post(data.auth_base_url+ '/auth/login', {
         id:'test2',
         password:'pass',
@@ -98,6 +107,7 @@ const loadUsers = async () => {
   //console.log(res);
   data.test2 = {id: res.json.id, token: res.json.token, app: 'hv'}
 
+  //$FlowFixMe
   res = await frisby.post(data.auth_base_url+ '/auth/login', {
         id:'test3@test.com',
         password:'pass',
@@ -106,6 +116,7 @@ const loadUsers = async () => {
   //console.log(res);
   data.test3 = {id: res.json.id, token: res.json.token, app: 'hv'}
 
+  //$FlowFixMe
   res = await frisby.post(data.auth_base_url+ '/auth/login', {
         id:'test4',
         password:'pass',
@@ -114,6 +125,7 @@ const loadUsers = async () => {
   //console.log(res);
   data.test4 = {id: res.json.id, token: res.json.token, app: 'hi'}
 
+  //$FlowFixMe
   res = await frisby.post(data.auth_base_url+ '/auth/login', {
         id:'test5@test.com',
         password:'pass',

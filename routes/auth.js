@@ -6,11 +6,13 @@ const utils = require('../utils');
 
 const router = express.Router();
 
+//$FlowFixMe
 router.use((req, res, next) => {
 
   next();
 })
 
+//$FlowFixMe
 router.get('/', (req, res) =>{
   res.send('Auth System');
 }); 
@@ -24,7 +26,9 @@ function validateEmail(email) {
 
 
 function createNewToken(user, app){
+  //$FlowFixMe
   const exp = Date.now() + (process.env.TOKEN_REFRESH_LENGTH_DAYS * 86400000);
+  //$FlowFixMe
   const refreshexp = Date.now() + (process.env.TOKEN_LENGTH_DAYS * 86400000 );
   //channels[process.env.CHANNEL_USER_PREFIX + app + user._id]
   return  {
@@ -38,10 +42,12 @@ function createNewToken(user, app){
       refresh: refreshexp,
       ch: user[process.env.ACCESS_META_KEY]},
       process.env.TOKEN_SECRET,
+      //$FlowFixMe
       { expiresIn: process.env.TOKEN_REFRESH_LENGTH_DAYS+'d'})};
 }
 
 // *** Login
+//$FlowFixMe
 router.post('/login', [
   oneOf([
     body('id').trim().isLength({ min: 3 }).trim().escape(),
@@ -90,6 +96,7 @@ router.post('/login', [
                     token: token,
                     app: app,
                     expires: exp, 
+                    //$FlowFixMe
                     [process.env.ACCESS_META_KEY]: auth[process.env.ACCESS_META_KEY], 
                     username: auth.user.username,
                     id: auth.user._id,
@@ -101,6 +108,7 @@ router.post('/login', [
 
 
 // **** REFRESH
+//$FlowFixMe
 router.post('/renewToken', [
   body('token', 'No token given').trim().isLength({ min: 3 }).bail(),
 ], async (req, res) => {
@@ -114,19 +122,16 @@ router.post('/renewToken', [
   
   try{
     const payload = jwt.verify(token, process.env.TOKEN_SECRET )
+    //$FlowFixMe - if payload is undefined, jwt.verify will throw an error
     const userdoc = await userDao.getUser(payload.id, req.app.userdb);
-    console.log('UserDOC: ', payload, userdoc);
+    if(!userdoc) throw new Error('Token contains incorect user id');
 
-
+    //$FlowFixMe  - code is part of our key, its used to check if token is still valid or user loged out
     if(payload.code !== userdoc.loginCode){
       return utils.sendError('token', 'Token code is not valid, please relogin.', res);
     }
-
     const tokenres = createNewToken(userdoc, payload.app);
-
     //const tokendata = utils.getTokenPayload(tokenres.token);
-
-    
     return res.json({ token: tokenres.token,
                       ch: userdoc[process.env.ACCESS_META_KEY],
                       app: payload.app,
@@ -148,17 +153,13 @@ router.post('/renewToken', [
       msg: 'Invalid token, or token has expired. Please relogin.'
     }]});
   }
-
-
-
-  return res.json({ token });
-   
 });
 
 
 
 
 // *** Forgot Password
+//$FlowFixMe
 router.post('/forgotpassword', [
   body('id', 'Username or email required as id').trim().isLength({ min: 3 }).trim().escape(),
 ], async (req, res) => {
@@ -202,6 +203,7 @@ router.post('/forgotpassword', [
 
 
 // *** register
+//$FlowFixMe
 router.post('/register', [
   body('password', 'Password needs to be at leaset 5 characters long').trim().isLength({ min: 3 }).bail(),
   body('username', 'Username must be at lease 3 characters').trim().isLength({ min: 3 }).trim().escape().bail(),
@@ -256,11 +258,12 @@ router.post('/register', [
 
 
 // *** LOGOUT
+//$FlowFixMe
 router.post('/logout', [
   body('token', 'Valid token is required to logout').trim().isLength({ min: 3 }),
   body('token', 'Token is not valid')
     .custom( async (value, {req}) => {
-      const res = await utils.checkProperToken(value, req.app.userdb);
+      const res = await utils.checkProperToken(value);
       if(res.ok) {
         req.userDoc = res.data;
         return true;

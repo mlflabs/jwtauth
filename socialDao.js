@@ -2,15 +2,13 @@ const db = require('./db');
 const userDao = require('./userDao');
 const  socialDao = {};
 const nano = require('nano')(process.env.COUCHDB);
-socialdb = nano.db.use(process.env.SOCIAL_DB);
-userdb = nano.db.use(process.env.USER_DB);
 //const _  = require('lodash');
 
 
 
 socialDao.getUser = async (id) => {
   try{
-    const user = await socialdb.get(id);
+    const user = await db.socialdb.get(id);
     console.log(id, user);
     return user;
   }
@@ -23,7 +21,8 @@ socialDao.getUser = async (id) => {
 socialDao.getUserOrCreate = async (id) => {
   let doc = await  socialDao.getUser(id);
   if(!doc) {
-    const userDoc = await userDao.getUser(id, userdb);
+    //$FlowFixMe
+    const userDoc = await db.userDao.getUser(id, userdb);
     if(!userDoc) throw new Error('User id is not valid, '+id);
 
     doc = {
@@ -39,7 +38,8 @@ socialDao.getUserOrCreate = async (id) => {
 socialDao.saveUser = async (userDoc) => {
   try{
     console.log('Save user: ', userDoc);
-    const res = await socialdb.insert(userDoc);
+    //$FlowFixMe
+    const res = await db.socialdb.insert(userDoc);
     if(res.ok == true)
       return res;
     return false;
