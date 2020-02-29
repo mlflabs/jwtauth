@@ -7,6 +7,9 @@ describe('CHALLENGE DAYS TEST', () => {
 
   it('First Action - Single', async () => {
 
+    //even though we are starting with one action already give, we can't use it
+    //because non of the other data, lastCalculatedDate,.... is given, so this get
+    //overriden by default.
     const member =  {
       actions: {
         [moment().subtract(5, "day").format(MOMENT_DATE_FORMAT)]:{
@@ -25,7 +28,7 @@ describe('CHALLENGE DAYS TEST', () => {
     const res = utilsGamify.calculateCurrentStreak(channel, member, [action]);
     expect(res).not.toBeNull();
     
-    expect(Object.keys(res.member.actions).length).toBe(2);
+    expect(Object.keys(res.member.actions).length).toBe(1);
   });
 
   it('First Action - Single, Partial', async () => {

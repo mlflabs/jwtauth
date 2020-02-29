@@ -16,7 +16,7 @@ router.get('/', (req, res) =>{
 //$FlowFixMe
 router.post('/addNewSystemDoc', [
   body('token', 'No token given').trim().isLength({ min: 3 }).bail(),
-  body('channelid', 'channelid required').trim().isLength({ min: 3 }).bail(),
+  body('channelname', 'channel name required').trim().isLength({ min: 3 }).bail(),
   body('doc', 'doc body required').notEmpty().bail(),
   body('doctype', 'Doc type is required').notEmpty().bail(),
   body('token', 'Token is not valid')
@@ -29,7 +29,7 @@ router.post('/addNewSystemDoc', [
       else
         throw new Error('Token is not valid');
   }).bail(),
-  body('channelid', '')
+  body('channelname', '')
     .custom( async (value, {req}) => {
       const res = await channelDao.getChannel(value, req.app.apidb);
       if(res) {
@@ -37,7 +37,7 @@ router.post('/addNewSystemDoc', [
         return true;
       }
       else
-        throw new Error('channel id is not valid');
+        throw new Error('channel name is not valid');
   }).bail(),
 ], async (req, res) => {
 
@@ -50,11 +50,10 @@ router.post('/addNewSystemDoc', [
     let doc = {};
     if(req.body.doc) doc = req.body.doc;
 
-    let secondaryType = req.body.secondaryType;
-    if(!secondaryType) secondaryType = undefined;
+    let secondaryType = req.body.secondaryType || doc.secondaryType || undefined;
     //create new channel, with user as creator
     const resChannel = await channelDao.saveNewSystemDoc(
-      req.user, req.body.channelid, req.body.doctype, secondaryType,  doc,  req.app.apidb)
+      req.user, req.body.channelname, req.body.doctype, secondaryType,  doc,  req.app.apidb)
 
     if(!resChannel || !resChannel.ok){
       return utils.sendErrorFromResult(resChannel, res);
@@ -93,7 +92,7 @@ router.post('/addNewChannel', [
     let doc = {};
     if(req.body.doc) doc = req.body.doc;
     //create new channel, with user as creator
-    const resChannel = await channelDao.saveMewChannel(
+    const resChannel = await channelDao.saveNewChannel(
       req.user, req.user.app, req.body.name, doc,  req.app.apidb ,req.app.userdb)
 
     if(!resChannel || !resChannel.ok){

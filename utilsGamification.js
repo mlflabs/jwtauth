@@ -59,6 +59,7 @@ const calculateDailyChallengeStreak = (challenge, member, action) => {
   
 
   if(!member.lastCalculatedDate) {
+    member.actions = {};
     member.lastCalculatedDate = moment(action.date).subtract(1,'d').format(MOMENT_DATE_FORMAT);
     member.biggestStreak = 0;
     member.currentStreak = 0;
@@ -152,11 +153,13 @@ const analizeDay = (currentAction, member, challenge) => {
 //from action and back
 const calculateMonthlyChallengeStreak = (challenge, member, action) => {
   if(!member.lastCalculatedDate) {
+    member.actions = {};
     member.lastCalculatedDate = moment(action.date).subtract(1,'d').format(MOMENT_DATE_FORMAT);
     member.biggestStreak = 0;
     member.currentStreak = 0;
     member.currentTimeperiedStreak = 0;
-    member.currentTimeperiodLastDay = moment(member.lastCalculatedDate).date(1).add(1, 'month');
+    member.currentTimeperiodLastDay = moment(member.lastCalculatedDate).date(1)
+                                        .add(1, 'month').format(MOMENT_DATE_FORMAT);
   }
 
   member.actions[action.date] = {value: action.value};
@@ -205,7 +208,10 @@ const calculateWeeklyChallengeStreak = (challenge, member, action) => {
     member.biggestStreak = 0;
     member.currentStreak = 0;
     member.currentTimeperiedStreak = 0;
-    member.currentTimeperiodLastDay = moment(member.lastCalculatedDate).day(FIRST_DAY_OF_WEEK).add(1, 'week');
+    member.currentTimeperiodLastDay = moment(member.lastCalculatedDate).day(FIRST_DAY_OF_WEEK)
+                                          .add(1, 'week').format(MOMENT_DATE_FORMAT);
+                            ;
+    member.actions = {};
   }
 
   member.actions[action.date] = {value: action.value};

@@ -127,6 +127,7 @@ utils.getChannelFromChannelDocId = (channelid) => {
   return channelid.split(DIV)[0];
 }
 
+
 utils.getChannelSystemDocId = (channelid, type, secondaryType) => {
   let type2 = '';
   if(secondaryType) type2 = secondaryType + DIV;
@@ -164,5 +165,34 @@ utils.formatDocForExport = (doc) => {
     doc.dirty = 0;
   return Object.assign({}, doc);
 }
+
+
+utils.getIndexById = (id, ary, idKey = 'id') => {
+  for (let i = 0; i < ary.length; i++) {
+    if (id === ary[i][idKey]) {
+      return i;
+    }
+  }
+  // if we don't have a match return null
+  return -1;
+}
+
+utils.saveIntoArray = (item, ary, idKey = 'id') => {
+  let i = utils.getIndexById(item[idKey], ary, idKey);
+  if (i === -1) {
+    i = ary.length;
+  }
+  return [...ary.slice(0, i),
+  Object.assign({}, item),
+  ...ary.slice(i + 1)];
+}
+
+
+
+
+
+
+
+
 
 module.exports = utils;

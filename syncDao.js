@@ -34,6 +34,9 @@ const canEditDocAndFormatForSave = async (doc, permissions, timestamp, apidb) =>
     const res = await apidb.get(doc._id);
     if(res.updated > doc.updated) return false; //if our doc time is lower then old doc
                                                 // means we didn't load latest doc
+    if(res.created < doc.created) 
+      return false; //if created date is after server doc, don't save,
+                    //let the user get the server doc first
     return {...doc, ...{ _rev: res._rev, updated: timestamp }};
   }
   catch(e) {

@@ -11,18 +11,13 @@ channelDao.uniqueChannel = async (channel, channeldb) => {
   if(channel.substring(0,1) == '_') return false;
   if(channel.substring(0,1) == '-') return false;
   try{
-    const c = await channeldb.get(generateChannelId(channel));
+    const c = await channeldb.get(utils.getChannelDocId(channel));
     return false;
   }
   catch(e) {
     // console.log('GetUser Error: ', e.message);
     return true;
   }
-}
-
-const generateChannelId = (channel) => {
-  //$FlowFixMe
-  return channel + process.env.DIV + process.env.CHANNEL_SUFFIX;
 }
 
 const getChannelError = () => {
@@ -129,16 +124,25 @@ channelDao.saveAddNewMemberRequest = async (memberid, data, channeldb) => {
   } 
 }
 
+const addMemberToChannel = (channelDoc, user, rights) => {
+  if(!channelDoc.members) channelDoc.members = {};
+  //Test and make sure that this is working
+  channelDoc.members = channelDoc.members.filter(doc => doc.id !== user.id);
+  //channel.members = _.remove(channel.members, doc => doc.id === user.id);
+  channelDoc.members.push({ id: user.id, 
+                          username: user.username, 
+                          rights, 
+                          scoreHistory:{}, 
+                          score:{exp:0}});
+  return channelDoc;
+   
+}
+
 channelDao.addMemberToChannel = async (channelid, user, rights, apidb) => {
   try {
-    const channel = await apidb.get(channelid);
+    let channel = await apidb.get(channelid);
     if(!channel) return false;
-
-    if(!channel.members) channel.members = {};
-    //Test and make sure that this is working
-    channel.members = channel.members.filter(doc => doc.id !== user.id);
-    //channel.members = _.remove(channel.members, doc => doc.id === user.id);
-    channel.members.push({id: user.id, username: user.username, rights});
+    channel = addMemberToChannel(channel, user,rights);
     channel.updated = Date.now();
     //channel.members = _.unionBy(channel.members, 'id');
     const res = await apidb.insert(channel);
@@ -181,7 +185,7 @@ channelDao.saveDefault = async (doc, channeldb) => {
 channelDao.getChannel = async (channel, apidb) => {
   try {
     //create id
-    const id = generateChannelId(channel)
+    const id = utils.getChannelDocId(channel)
     const doc = await apidb.get(id);
     console.log(channel);
     return doc
@@ -191,10 +195,11 @@ channelDao.getChannel = async (channel, apidb) => {
     return null;
   }
 }
-
+/*
 channelDao.saveChannel = async (channel, channeldb) => {
   try {
-    const res = channeldb.insert(utils.checkDocStructureBeforeSave(channel));
+    const res = channeldb.insert(utils.checkDocStructureBeforeSave(
+                      utils.prepareDocForSave(channel)));
     if(res.ok == true)return res;
     return false;
   }
@@ -203,9 +208,9 @@ channelDao.saveChannel = async (channel, channeldb) => {
     return false;
   }
 }
+*/
 
-
-channelDao.saveMewChannel = async (user, app, name, doc, channeldb, userdb) => {
+channelDao.saveNewChannel = async (user, app, name, doc, channeldb, userdb) => {
   try{
 
     let unique = false;
@@ -216,15 +221,15 @@ channelDao.saveMewChannel = async (user, app, name, doc, channeldb, userdb) => {
     }
 
     console.log('Save channel: ', channel );
-    const ddoc = Object.assign(doc, { 
-      _id: generateChannelId(channel), 
+    let ddoc = Object.assign(doc, { 
+      _id: utils.getChannelDocId(channel), 
       name: name,
       creator: user.id, 
-      members: [{id: user.id, username: user.username, rights: '1000'}],
       updated: Date.now(),
       channel,
       date: Date.now()
     });
+    ddoc = addMemberToChannel(ddoc, user, '1000');
     const res = await channeldb.insert(utils.checkDocStructureBeforeSave(ddoc));
     console.log(res);
     if(res.ok != true)

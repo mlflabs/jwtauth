@@ -86,10 +86,6 @@ const canEditChallengeMember = async (id, req) => {
 
   const member = res.members.find(m => m.id === req.user.id)
 
-  const today = formatDate(Date.now());
-  const submittedToday = member.progress.find(p => p.date === today);
-  if(submittedToday) throw new Error('Action alredy taken today');
-  
   req.member = member;
   req.challengeDoc = res;     
 }
@@ -135,7 +131,12 @@ router.post('/acceptChallenge', [
 
     //add user
     if(!doc.members) doc.members = [];
-    doc.members.push({username: user.username, id: user.id, progress: [], score: 0, joinDate: Date.now()})
+    doc.members.push({username: user.username, 
+                      id: user.id, 
+                      actions: {}, 
+                      scoreHistory: {},
+                      score: {exp: 0}, 
+                      joinDate: Date.now()})
     await channelDao.saveDefault(doc, req.app.apidb);
 
     return utils.sendRes(res, 'Challenge Accepted');
@@ -219,19 +220,39 @@ router.post('/submitChallengeActions', [
   }
 
   try{
+
+    if(req.challengeDoc.state !== 'current'){
+      throw new Error('Challenge is not in a running state, cannot submit action');
+    }
+
     let challenge = req.challengeDoc;
-    const member = req.member;
+    let member = req.member;
+    const gamifyRes = utilsGamify.calculateCurrentStreak(challenge, member, req.body.actions);
+    member = gamifyRes.member;
+
+    //load project to update user score
     const today = formatDate(Date.now());
-    const res = utilsGamify.calculateCurrentStreak(challenge, member, req.body.actions);
+    //$FlowFixMe
+    const project = await channelDao.getChannel(challenge.channel, req.app.apidb);
+    const projectMember = project.members.find(m => m.id === member.id);
+    if(!projectMember.score) projectMember.score = {exp: 0};
+    if(!projectMember.scoreHistory[today])projectMember.scoreHistory[today] = {exp: 0};
+    if(!member.score) member.score = {exp: 0}; 
+    if(!member.scoreHistory[today])member.scoreHistory[today] = {exp: 0};
+    //add up the scores
+    
+    member.score.exp += gamifyRes.reward;
+    member.scoreHistory[today].exp += gamifyRes.reward;
+    projectMember.score.exp += gamifyRes.reward;
+    projectMember.scoreHistory[today].exp +=  gamifyRes.reward;
+    //save challenge with updated member
+    challenge.members = utils.saveIntoArray(member, challenge.members, 'id');
+    project.members = utils.saveIntoArray(projectMember, project.members, 'id');
+    await channelDao.saveDefault(project, req.app.apidb);
+    await channelDao.saveDefault(challenge, req.app.apidb);
 
-    member.progress.push({
-      date:today,
-      value: req.body.progress,
-      reward:''
-    });
-
-    //const newdoc = await channelDao.saveDefault(doc, req.app.apidb);
-    //return utils.sendRes(res, 'Challenge Saved, please wait a few minutes for a data sync.', {doc: newdoc});
+    return utils.sendRes(res, 'Action saved, please wait a few minutes for a data sync.', 
+      {challenge, rewards: gamifyRes.reward});
   }
   catch(e){
     console.log('Adding new channel request error: ', e.message, e.name)

@@ -1,7 +1,7 @@
 //$FlowFixMe
 const frisby = require('frisby');
 //$FlowFixMe
-const data = require('./testDataValues').default
+const data = require('./testDataValues')
 
 
 
@@ -9,8 +9,11 @@ const data = require('./testDataValues').default
 beforeAll(async () => {
   console.log('Re-Setting databases')
   // delete all the contents of db
+  //$FlowFixMe
   await data.nano.db.destroy(data.usersDatabaseName)
+  //$FlowFixMe
   await data.nano.db.destroy(data.channelDatabaseName)
+  //$FlowFixMe
   await data.nano.db.destroy(data.apiDatabaseName)
   // create brand new databases
   console.log('Creating Databases');
