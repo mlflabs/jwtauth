@@ -32,8 +32,6 @@ channelDao.checkIfRequestAlreadySent = async (userid, memberid, channel, channel
       include_docs: true,
     })
 
-    console.log(res);
-    
     if(res.rows.length == 0) return false;
 
     let duplicate = false;
@@ -133,7 +131,7 @@ const addMemberToChannel = (channelDoc, user, rights) => {
                           username: user.username, 
                           rights, 
                           scoreHistory:{}, 
-                          score:{exp:0}});
+                          score:{reward:0}});
   return channelDoc;
    
 }
@@ -155,6 +153,29 @@ channelDao.addMemberToChannel = async (channelid, user, rights, apidb) => {
   }
 
 }
+
+
+channelDao.getDoc = async (id, apidb) => {
+  try {
+    const doc = await apidb.get(id);
+    console.log(doc, id);
+    return doc
+  }
+  catch(e){
+    console.log(e);
+    return null;
+  }
+}
+
+channelDao.saveDoc = async (doc, apidb) => {
+  const res = await apidb.insert(doc);
+  if(res.ok == true)
+    return utils.formatDocForExport(doc);
+  
+  throw new Error("System error, couldn't save document");
+
+}
+
 
 channelDao.getSysDoc = async (id, apidb) => {
   try {

@@ -404,8 +404,6 @@ const parties = async () => {
       
     });
     expect(test1AcCh4.json.success).toBe(true);
-
-
     //start some challenges
      //$FlowFixMe
      const test1Ch1Start = await frisby.post(data.auth_base_url+ '/habits/changeChallengeState', 

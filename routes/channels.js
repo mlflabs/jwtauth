@@ -14,6 +14,61 @@ router.get('/', (req, res) =>{
 
 
 //$FlowFixMe
+router.post('/editSystemDoc', [
+  body('token', 'No token given').trim().isLength({ min: 3 }).bail(),
+  body('doc', 'doc body required').notEmpty().bail(),
+  body('token', 'Token is not valid')
+    .custom( async (value, {req}) => {
+      const res = await utils.checkProperToken(value);
+      if(res.ok) {
+        req.user = res.data;
+        return true;
+      }
+      else
+        throw new Error('Token is not valid');
+  }).bail(),
+  body('doc', '')
+    .custom( async (doc, {req}) => {
+      if(!doc.id) throw new Error('Doc object needs a valid id')
+      const res = await channelDao.getSysDoc(doc.id, req.app.apidb);
+      if(res) {
+        req.systemDoc = res;
+        return true;
+      }
+      else
+        throw new Error('Doc object does not exist');
+  }).bail(),
+], async (req, res) => {
+
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json({ errors: errors.array() });
+  }
+
+  try{
+    let doc = {};
+    if(req.body.doc) doc = req.body.doc;
+    //delete any datatypes users should not have access to
+    delete doc.id;
+    delete doc.type;
+    delete doc.members;
+    delete doc.updated;
+    delete doc.creator;
+    delete doc.rev;
+
+    const newdoc = await channelDao.saveDefault({...req.systemDoc, ...doc},  req.app.apidb)
+
+    return utils.sendRes(res, 'System Doc saved', {doc: newdoc});
+  }
+  catch(e){
+    console.log('Adding new channel request error: ', e.message, e.name)
+    return utils.sendError('database', 'Error saving, please wait and try again later.', res);
+  }
+});
+
+
+
+//$FlowFixMe
 router.post('/addNewSystemDoc', [
   body('token', 'No token given').trim().isLength({ min: 3 }).bail(),
   body('channelname', 'channel name required').trim().isLength({ min: 3 }).bail(),

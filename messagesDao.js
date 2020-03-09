@@ -64,7 +64,40 @@ messagesDao.sendMessageToChannel = async (channelid, msg, messagesdb) => {
   }
 }
 
+
+messagesDao.sendMessageToChannel = async (msg, messagesdb) => {
+  try {
+    const timestamp = Date.now();
+    const doc = {...{
+      _id: getChannelMessageId(channelid, timestamp),
+      created: timestamp,
+      updated: timestamp,
+      type: process.env.DOC_TYPE_MSG,
+      channel:  channelid
+    }, ...msg}
+    const res = await messagesdb.insert(utils.checkDocStructureBeforeSave(doc));
+    if(res.ok) return true;
+    return false;
+  }
+  catch(e) {
+    console.log(e);
+    return false;
+  }
+}
+
+
 messagesDao.getMessageDoc = async (id, messagesdb) => {
+  try{
+    const msg = await messagesdb.get(id);
+    return msg;
+  }
+  catch(e) {
+    console.log('GetMsg Error: ', e.message);
+    return null;
+  }
+}
+
+messagesDao.updateMessageData = async (id, messagesdb) => {
   try{
     const msg = await messagesdb.get(id);
     return msg;
