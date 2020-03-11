@@ -94,6 +94,7 @@ const canEditChallengeMember = async (id, req) => {
 router.post('/acceptChallenge', [
   body('token', 'No token given').trim().isLength({ min: 3 }).bail(),
   body('challengeid', 'Proper challenge id required').notEmpty().bail(),
+  body('data', 'Data required, send empty object if none').notEmpty().bail(),
   body('token', 'Token is not valid')
     .custom( async (value, {req}) => {
       await properToken(value, req);
@@ -136,6 +137,33 @@ router.post('/acceptChallenge', [
                       actions: {}, 
                       score: {reward: 0}, 
                       joinDate: Date.now()})
+
+    if(doc.challengeType === 'Biggest Looser'){
+      //make usre we have proper data object
+      if(!req.body.data.startingValue)
+        throw new Error('Data object does not have startingValue');
+      //save the private value
+      if(!doc.private) doc.private = {};
+      if(!doc.private.biggestLooserMembers) doc.private.biggestLooserMembers = [];
+      doc.private.biggestLooserMembers.push({
+        id: user.id,
+        startingValue: req.body.data.startingValue
+      })
+    }
+    else {
+      if(doc.challengeType === 'Biggest Gainer'){
+        //make usre we have proper data object
+        if(!req.body.data.startingValue)
+          throw new Error('Data object does not have startingValue');
+        //save the private value
+        if(!doc.private) doc.private = {};
+        if(!doc.private.biggestGainerMembers) doc.private.biggestGainerMembers = [];
+        doc.private.biggestGainerMembers.push({
+          id: user.id,
+          startingValue: req.body.data.startingValue
+        })
+      }
+    }
     const newdoc = await channelDao.saveDefault(doc, req.app.apidb);
 
     return utils.sendRes(res, 'Challenge Accepted', {doc: newdoc});

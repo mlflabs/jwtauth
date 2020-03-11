@@ -18,12 +18,12 @@ const sortByDate = (a, b) =>{
 
 // a is original, b is new
 const mergeActions = (a, b) => {
-  return {
+  return {...b, ...{
     date: a.date,
     value: b.value, 
     reward: a.reward,
     data: b.data || a.data,
-  }
+  }}
 }
 
 utilsGamify.calculateCurrentStreak = (challenge, member, actions) => {
@@ -116,15 +116,33 @@ const calculateDailyChallengeStreak = (challenge, member, action, sameDayAction)
 
   //calculate rewards
   let reward;
-  if(member.currentStreak === 0){
-    reward = Math.floor(GAMIFY_CHALLENGE_BASE_REWARD * 
-                        (action.value / challenge.regularityEachDayGoal));
+  //if biggest looser, or gainer
+  if(challenge.challengeType === 'Biggest Looser'){
+    //find the starting value
+    const privateData = challenge.private.biggestLooserMembers.find(u => u.id === member.id)
+    if(!privateData) throw new Error('This member does not have starting value data.')
+
+    reward = (privateData.startingValue - action.currentValue) * challenge.challengePointMultiplier;
+
+  }
+  else if (challenge.challengeType === 'Biggest Gainer'){
+    const privateData = challenge.private.biggestGainerMembers.find(u => u.id === member.id)
+    if(!privateData) throw new Error('This member does not have starting value data.')
+
+    reward = (action.currentValue - privateData.startingValue) * challenge.challengePointMultiplier;
   }
   else {
-    reward = calculateRewardsByStreakSize(member.currentStreak, 
-                                          challenge.difficulty,
-                                          GAMIFY_CHALLENGE_BASE_REWARD);
+    if(member.currentStreak === 0){
+      reward = Math.floor(GAMIFY_CHALLENGE_BASE_REWARD * 
+                          (action.value / challenge.regularityEachDayGoal));
+    }
+    else {
+      reward = calculateRewardsByStreakSize(member.currentStreak, 
+                                            challenge.difficulty,
+                                            GAMIFY_CHALLENGE_BASE_REWARD);
+    }
   }
+
 
   member.lastCalculatedDate = action.date;
   
@@ -145,20 +163,43 @@ const analizeDay = (currentAction, member, challenge) => {
     //do we have a value
     if(currentAction.value >= challenge.regularityEachDayGoal){
       //success
-      if(member.currentTimeperiedStreak < challenge.regularityIntervalGoal){
+      //if biggest looser, or gainer
+      if(challenge.challengeType === 'Biggest Looser' &&
+            member.currentTimeperiedStreak < challenge.regularityIntervalGoal){
+        //find the starting value
+        const privateData = challenge.private.biggestLooserMembers.find(u => u.id === member.id)
+        if(!privateData) throw new Error('This member does not have starting value data.')
+        
         member.currentTimeperiedStreak++;
         member.currentStreak++;
-        reward = calculateRewardsByStreakSize(member.currentStreak, 
-                                              challenge.difficulty,
-                                              GAMIFY_CHALLENGE_BASE_REWARD);
+        reward = (privateData.startingValue - currentAction.currentValue) * challenge.challengePointMultiplier;
+
       }
-      else
-      {
-        //we made it, but we are over the goal value, just give basic bonus
-        //make it half of even a non streak one
-        member.currentTimeperiedStreak++; //to see when we have a duplicate action sumbited
-                                          //if we need to remove one from this, or just keep going
-        reward = Math.floor(GAMIFY_CHALLENGE_BASE_REWARD/2);
+      else if (challenge.challengeType === 'Biggest Gainer' &&
+            member.currentTimeperiedStreak < challenge.regularityIntervalGoal){
+        const privateData = challenge.private.biggestGainerMembers.find(u => u.id === member.id)
+        if(!privateData) throw new Error('This member does not have starting value data.')
+
+        member.currentTimeperiedStreak++;
+        member.currentStreak++;
+        reward = (currentAction.currentValue - privateData.startingValue)  * challenge.challengePointMultiplier;
+      }
+      else {
+        if(member.currentTimeperiedStreak < challenge.regularityIntervalGoal){
+          member.currentTimeperiedStreak++;
+          member.currentStreak++;
+          reward = calculateRewardsByStreakSize(member.currentStreak, 
+                                                challenge.difficulty,
+                                                GAMIFY_CHALLENGE_BASE_REWARD);
+        }
+        else
+        {
+          //we made it, but we are over the goal value, just give basic bonus
+          //make it half of even a non streak one
+          member.currentTimeperiedStreak++; //to see when we have a duplicate action sumbited
+                                            //if we need to remove one from this, or just keep going
+          reward = Math.floor(GAMIFY_CHALLENGE_BASE_REWARD/2);
+        }
       }
     } 
     else {

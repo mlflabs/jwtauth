@@ -162,6 +162,7 @@ utils.formatDocForExport = (doc) => {
     delete doc._id;
     delete doc.uuid;
     delete doc.channel;
+    delete doc.private;
     doc.dirty = 0;
   return Object.assign({}, doc);
 }

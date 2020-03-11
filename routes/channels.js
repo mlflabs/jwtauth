@@ -167,7 +167,7 @@ router.post('/addNewChannel', [
 router.post('/sendAddMemberRequest', [
   body('token', 'No token given').trim().isLength({ min: 3 }).bail(),
   body('channelid','Channel required').trim().isLength({ min: 3 }).trim().escape().bail(), 
-  body('id', 'Id of friend is required').trim().isLength({ min: 3 }).trim().escape().bail(),
+  body('username', 'Username of friend is required').trim().isLength({ min: 3 }).trim().escape().bail(),
   body('rights', 'Incorect rights length, need a 4 digit number').trim().isLength({ min: 4, max: 4 }).trim().escape().bail(),
   body('token', 'Token is not valid')
     .custom( async (value, {req}) => {
@@ -181,13 +181,13 @@ router.post('/sendAddMemberRequest', [
       }
         
   }).bail(),
-  body('id', 'Member ID is incorect, cannot find user').bail()
+  body('username', '').bail()
     .custom( async (value, {req}) => {
       
-      const friend = await userDao.getUser(value, req.app.userdb);
+      const friend = await userDao.getUserByUsername(value, req.app.userdb);
 
       if(!friend){
-        throw new Error('Friend Id is invalid');
+        throw new Error('Friend username is invalid');
       }
       req.friendDoc = friend;
       console.log(friend);

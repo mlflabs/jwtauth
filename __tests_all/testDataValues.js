@@ -96,7 +96,7 @@ const loadUsers = async () => {
         app: 'hv',
   }) 
   //console.log(res);
-  data.test1 = {id: res.json.id, token: res.json.token, app: 'hv'}
+  data.test1 = {id: res.json.id, token: res.json.token, app: 'hv', username: res.json.username}
 
   //$FlowFixMe
   res = await frisby.post(data.auth_base_url+ '/auth/login', {
@@ -105,7 +105,7 @@ const loadUsers = async () => {
         app: 'hv',
   }) 
   //console.log(res);
-  data.test2 = {id: res.json.id, token: res.json.token, app: 'hv'}
+  data.test2 = {id: res.json.id, token: res.json.token, app: 'hv', username: res.json.username}
 
   //$FlowFixMe
   res = await frisby.post(data.auth_base_url+ '/auth/login', {
@@ -114,7 +114,7 @@ const loadUsers = async () => {
         app: 'hv',
   }) 
   //console.log(res);
-  data.test3 = {id: res.json.id, token: res.json.token, app: 'hv'}
+  data.test3 = {id: res.json.id, token: res.json.token, app: 'hv', username: res.json.username}
 
   //$FlowFixMe
   res = await frisby.post(data.auth_base_url+ '/auth/login', {
@@ -123,7 +123,7 @@ const loadUsers = async () => {
         app: 'hi',
   }) 
   //console.log(res);
-  data.test4 = {id: res.json.id, token: res.json.token, app: 'hi'}
+  data.test4 = {id: res.json.id, token: res.json.token, app: 'hi', username: res.json.username}
 
   //$FlowFixMe
   res = await frisby.post(data.auth_base_url+ '/auth/login', {
@@ -132,7 +132,7 @@ const loadUsers = async () => {
         app: 'hi',
   }) 
   //console.log(res);
-  data.test5 = {id: res.json.id, token: res.json.token, app: 'hi'}
+  data.test5 = {id: res.json.id, token: res.json.token, app: 'hi', username: res.json.username}
 
 }
 

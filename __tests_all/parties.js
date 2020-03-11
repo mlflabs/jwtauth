@@ -88,7 +88,7 @@ const parties = async () => {
       token: data.test1.token,
       channelid: p1.json.channel,
       //$FlowFixMe
-      id: data.test2.id,
+      username: data.test2.username,
       rights: '0121',
     });
     //$FlowFixMe
@@ -97,7 +97,7 @@ const parties = async () => {
       token: data.test1.token,
       channelid: p1.json.channel,
       //$FlowFixMe
-      id: data.test3.id,
+      username: data.test3.username,
       rights: '0121',
     });
     //$FlowFixMe
@@ -106,7 +106,7 @@ const parties = async () => {
       token: data.test1.token,
       channelid: p1.json.channel,
       //$FlowFixMe
-      id: data.test4.id,
+      username: data.test4.username,
       rights: '0121',
     });
 
@@ -116,7 +116,7 @@ const parties = async () => {
       token: data.test2.token,
       channelid: p3.json.channel,
       //$FlowFixMe
-      id: data.test1.id,
+      username: data.test1.username,
       rights: '0121',
     });
 
@@ -337,8 +337,8 @@ const parties = async () => {
     {
       //$FlowFixMe
       token: data.test1.token,
-      challengeid: test1Ch1.json.doc.id
-      
+      challengeid: test1Ch1.json.doc.id,
+      data: {}
     });
     expect(test1AcCh1.json.success).toBe(true);
     //$FlowFixMe
@@ -346,7 +346,8 @@ const parties = async () => {
     {
       //$FlowFixMe
       token: data.test2.token,
-      challengeid: test1Ch1.json.doc.id
+      challengeid: test1Ch1.json.doc.id,
+      data: {}
       
     });
     expect(test2AcCh1.json.success).toBe(true);
@@ -355,7 +356,8 @@ const parties = async () => {
     {
       //$FlowFixMe
       token: data.test3.token,
-      challengeid: test1Ch1.json.doc.id
+      challengeid: test1Ch1.json.doc.id,
+      data: {}
       
     });
     expect(test3AcCh1.json.success).toBe(true);
@@ -364,7 +366,8 @@ const parties = async () => {
     {
       //$FlowFixMe
       token: data.test1.token,
-      challengeid: test1Ch2.json.doc.id
+      challengeid: test1Ch2.json.doc.id,
+      data: {}
       
     });
     expect(test1AcCh2.json.success).toBe(true);
@@ -373,7 +376,8 @@ const parties = async () => {
     {
       //$FlowFixMe
       token: data.test2.token,
-      challengeid: test1Ch2.json.doc.id
+      challengeid: test1Ch2.json.doc.id,
+      data: {}
       
     });
     expect(test2AcCh2.json.success).toBe(true);
@@ -382,7 +386,8 @@ const parties = async () => {
     {
       //$FlowFixMe
       token: data.test2.token,
-      challengeid: test1Ch3.json.doc.id
+      challengeid: test1Ch3.json.doc.id,
+      data: {}
       
     });
     expect(test2AcCh3.json.success).toBe(true);
@@ -391,7 +396,8 @@ const parties = async () => {
     {
       //$FlowFixMe
       token: data.test2.token,
-      challengeid: test2Ch4.json.doc.id
+      challengeid: test2Ch4.json.doc.id,
+      data: {}
       
     });
     expect(test2AcCh4.json.success).toBe(true);
@@ -400,7 +406,8 @@ const parties = async () => {
     {
       //$FlowFixMe
       token: data.test1.token,
-      challengeid: test2Ch4.json.doc.id
+      challengeid: test2Ch4.json.doc.id,
+      data: {}
       
     });
     expect(test1AcCh4.json.success).toBe(true);
