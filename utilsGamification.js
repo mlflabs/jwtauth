@@ -26,6 +26,10 @@ const mergeActions = (a, b) => {
   }}
 }
 
+const round = (n) => {
+  return Math.round(n * 10)/10
+}
+
 utilsGamify.calculateCurrentStreak = (challenge, member, actions) => {
   
     //loop through actions and add up rewards
@@ -143,6 +147,7 @@ const calculateDailyChallengeStreak = (challenge, member, action, sameDayAction)
     }
   }
 
+  reward = round(reward)
 
   member.lastCalculatedDate = action.date;
   
@@ -212,7 +217,7 @@ const analizeDay = (currentAction, member, challenge) => {
   if(member.currentStreak > member.biggestStreak)
     member.biggestStreak = member.currentStreak;
   
-  return reward;
+  return round(reward);
 }
 
 //from action and back
