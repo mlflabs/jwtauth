@@ -81,16 +81,11 @@ router.post('/login', [
   const auth = await userDao.authenticateLocal(username, email, password, 
     req.app.userdb);
 
-  console.log('Auth login', auth);
-
   //console.log('Login Authentication: ', auth);
   if(!auth.success)
     return utils.sendErrorFromExpressValidaiton(auth.errors, res);
 
   const {exp, token} = createNewToken(auth.user, app);
-
-
-  console.log('Token: ', token)
 
   return res.json({ success: true,
                     token: token,
@@ -150,7 +145,7 @@ router.post('/renewToken', [
     }
     return res.status(422).json({ errors: [{
       location: 'token',
-      msg: 'Invalid token, or token has expired. Please relogin.'
+      msg: 'Invalid token, or token has expired. Please relogin'
     }]});
   }
 });
@@ -181,7 +176,6 @@ router.post('/forgotpassword', [
       userDoc = await userDao.getUserByUsername(id, req.app.userdb);
     }
   }
-  console.log('Forgot password loaded user::: ', userDoc);
   if(userDoc == null){
     //if we have user, lets email them a link to change it
     return res.json({ 
@@ -286,7 +280,7 @@ router.post('/logout', [
   }
   catch(e){
     console.log('Logout Error:::: ', e.message)
-    return utils.sendError('database', 'Error removing token, please try again.', res);
+    return utils.sendError('database', 'Error removing token, please try again', res);
   }
 
 });

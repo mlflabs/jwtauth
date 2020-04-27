@@ -62,7 +62,7 @@ router.post('/editSystemDoc', [
   }
   catch(e){
     console.log('Adding new channel request error: ', e.message, e.name)
-    return utils.sendError('database', 'Error saving, please wait and try again later.', res);
+    return utils.sendError('database', 'Error saving, please wait and try again later', res);
   }
 });
 
@@ -92,7 +92,7 @@ router.post('/addNewSystemDoc', [
         return true;
       }
       else
-        throw new Error('channel name is not valid');
+        throw new Error('Channel name is not valid');
   }).bail(),
 ], async (req, res) => {
 
@@ -117,7 +117,7 @@ router.post('/addNewSystemDoc', [
   }
   catch(e){
     console.log('Adding new channel request error: ', e.message, e.name)
-    return utils.sendError('database', 'Error saving, please wait and try again later.', res);
+    return utils.sendError('database', 'Error saving, please wait and try again later', res);
   }
 });
 
@@ -154,12 +154,12 @@ router.post('/addNewChannel', [
       return utils.sendErrorFromResult(resChannel, res);
     }
 
-    
+    console.log(resChannel);
     return utils.sendRes(res, 'Channel saved', resChannel.data);
   }
   catch(e){
     console.log('Adding new channel request error: ', e.message, e.name)
-    return utils.sendError('database', 'Error saving, please wait and try again later.', res);
+    return utils.sendError('database', 'Error saving, please wait and try again later', res);
   }
 });
 
@@ -239,7 +239,7 @@ router.post('/sendAddMemberRequest', [
         user.id, friend._id, channel, req.app.channeldb);
     
     if(duplicate)
-      return utils.sendError('duplicate', 'Request for this memeber has alread been sent.', res);
+      return utils.sendError('duplicate', 'Request for this memeber has alread been sent', res);
 
     const date = Date.now();
     const resRequest = await channelDao.saveAddNewMemberRequest(friend._id,
@@ -256,7 +256,7 @@ router.post('/sendAddMemberRequest', [
 
     await messagesDao.sendMessageToUser(user.id, user.app,
                 messagesDao.getMsgObject('system','event', '', 
-                'Invite has been send to '+friend.username, {channel: channel, name: req.channelDoc.name, date}), req.app.apidb);
+                'Channel invite send', { friend: friend.username, channel: channel, name: req.channelDoc.name, date}), req.app.apidb);
 
     if(!resRequest){
       return res.status(422).json({ errors: [{
@@ -276,7 +276,7 @@ router.post('/sendAddMemberRequest', [
 
     return res.status(422).json({ errors: [{
       location: 'database',
-      msg: 'Error saving, please wait and try again later.'
+      msg: 'Error saving, please wait and try again later'
     }, e]});
   }
 });
@@ -359,13 +359,13 @@ router.post('/acceptChannelInvitation', [
 
     const msgRes1 = await messagesDao.sendMessageToUser(user.id, user.app,
         messagesDao.getMsgObject('system','event', '',
-        'Invitation accepted to ' + channelDoc.name, {name: channelDoc.name}), req.app.apidb);
+        'Channel invitation accepted', {channel: channelDoc.name}), req.app.apidb);
 
     // let sender know, user accepted invitation
     const msgRes2 = await messagesDao.sendMessageToChannel(requestDoc.channel, 
                 messagesDao.getMsgObject('system','event', '',
-                'Invitation accepted to ' + channelDoc.name, 
-                {user: user.username, type: 'inviteaccepted'}), req.app.apidb);
+                'User accepted channel invitation', 
+                { channel: channelDoc.name, friend: user.username, type: 'inviteaccepted'}), req.app.apidb);
 
     if(!msgRes1 || !msgRes2){
       return res.status(422).json({ errors: [{
@@ -385,7 +385,7 @@ router.post('/acceptChannelInvitation', [
 
     return res.status(422).json({ errors: [{
       location: 'database',
-      msg: 'Error saving, please wait and try again later.'
+      msg: 'Error saving, please wait and try again later'
     }, e]});
   }
 });

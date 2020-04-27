@@ -461,26 +461,4 @@ const createMessages = async (gamifyRes, challenge, userid, apidb) => {
 utilsGamify.createMessages = createMessages;
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 module.exports = utilsGamify;

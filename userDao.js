@@ -210,7 +210,7 @@ userDao.authenticateLocal = async (username, email, password, userdb) => {
     if(!user)
       return { success: false, errors: [{
         location: 'database',
-        msg: 'Error Username not found.'
+        msg: 'Error Username not found'
       }]};
 
   }
@@ -220,7 +220,7 @@ userDao.authenticateLocal = async (username, email, password, userdb) => {
     if(!user)
       return { success: false, errors: [{
         location: 'database',
-        msg: 'Error email or password not valid.'
+        msg: 'Error email or password not valid'
       }]};
   }
 
@@ -233,7 +233,7 @@ userDao.authenticateLocal = async (username, email, password, userdb) => {
   if(!valid)
     return { success: false, errors: [{
       location: 'database',
-      msg: 'Error: password not valid.'
+      msg: 'Error password not valid'
     }]};
 
   return { success: true, errors: [], user: user};

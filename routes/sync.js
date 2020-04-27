@@ -40,13 +40,13 @@ router.post('/sync',[
   if (!errors.isEmpty()) 
     return utils.sendErrorFromExpressValidaiton(errors.array(), res);
    
-
+  //console.log(req.body);
   const data = req.body.data;
   //make sure it has correct structure
   if(!data.channels) data.channels = {};
   if(!data.checkpoints) data.checkpoints = {};
 
-  console.log('Sync Data: ', data);
+  //console.log('Sync Data: ', data);
   // first save data
   const resSave = await syncDao.saveDocs(
     data.channels, req.user, req.app.apidb);
@@ -55,7 +55,7 @@ router.post('/sync',[
   const resLoad = await syncDao.loadUserNewDocs(
     data.checkpoints, req.user, req.app.apidb);
 
-  console.log(resLoad);
+  //console.log(resLoad);
 
   utils.sendRes(res, 'OK', {types: resLoad.types, checkpoints: resLoad.channels});
 });

@@ -109,6 +109,11 @@ utils.canEditChildItem = (item, rights, id) => {
   return false;
 }
 
+utils.getUserChannelNameFromUserAndApp = (userid, app) => {
+  return  CHANNEL_USER_PREFIX + 
+          app + userid;
+}
+
 utils.getUserChannelNameFromUser = (user) => {
   return  CHANNEL_USER_PREFIX + 
           user.app + user.id;
@@ -186,6 +191,12 @@ utils.saveIntoArray = (item, ary, idKey = 'id') => {
   return [...ary.slice(0, i),
   Object.assign({}, item),
   ...ary.slice(i + 1)];
+}
+
+utils.getGamifyDocId = (userid, app) => {
+  const channel = utils.getUserChannelNameFromUserAndApp(userid, app);
+  return channel + '.gamify'
+
 }
 
 

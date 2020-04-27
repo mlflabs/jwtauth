@@ -347,7 +347,7 @@ router.post('/editProject', [
   }
   catch(e){
     console.log('Adding new channel request error: ', e.message, e.name)
-    return utils.sendError('database', 'Error saving, please wait and try again later.', res);
+    return utils.sendError('database', 'Error saving, please wait and try again later', res);
   }
 });
 

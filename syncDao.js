@@ -37,6 +37,7 @@ const canEditDocAndFormatForSave = async (doc, permissions, timestamp, apidb) =>
     if(res.created < doc.created) 
       return false; //if created date is after server doc, don't save,
                     //let the user get the server doc first
+    console.log('SYNC, merging with old rev', res, doc);
     return {...doc, ...{ _rev: res._rev, updated: timestamp }};
   }
   catch(e) {
@@ -69,7 +70,6 @@ const formatDocsByTypeForExport = async(docs) => {
     if(channels[channel] < docs[i].updated)
       channels[channel] = docs[i].updated;
   }
-  console.log(newdocs, channels);
   return {types: newdocs, channels};
 }
 
@@ -92,10 +92,9 @@ syncDao.loadUserNewDocs  = async (checkpoints, user, apidb) => {
           updated: {"$gt": checkpoint}
         }
       });
-     console.log(res);
      for(let x = 0; x < res.docs.length; x++) {
-       console.log(res.docs[x].updated, checkpoint);
-       console.log(res.docs[x].updated - checkpoint)
+       //console.log(res.docs[x].updated, checkpoint);
+       //console.log(res.docs[x].updated - checkpoint)
      }
      
      docs.push(...res.docs);
@@ -104,14 +103,14 @@ syncDao.loadUserNewDocs  = async (checkpoints, user, apidb) => {
       console.log(e);
     }
   }
-  console.log(docs);
+  //console.log(docs);
   return formatDocsByTypeForExport(docs);
 
 }
 
 
 syncDao.saveDocs = async (docs, user, apidb) => {
-  console.log(docs, user);
+  console.log("saveDocs:::: Saving Docs",docs, user);
   const keys = Object.keys(docs);
   for(let i = 0; i < keys.length; i++) {
     // check if proper permissions
@@ -127,13 +126,16 @@ syncDao.saveDocs = async (docs, user, apidb) => {
       let logdoc;
       const timestamp = Date.now();
       for(let x = 0; x < docs[channel].length; x++) {
+
         //if its system doc continue
         newdoc = docs[channel][x];
+        console.log('Analizing doc started::::: ', newdoc);
         newdoc = await formatDocForInternalProcessing(newdoc, channel);
         if(!newdoc) continue;
         newdoc = await canEditDocAndFormatForSave(newdoc, perms, timestamp,  apidb);
         //if(!newdoc) continue;
         //logdoc  = await getChangeLogDoc(newdoc, channel, apidb);
+        console.log('Doc pre sync save: ', newdoc);
         if(newdoc)
           newDocs.push(newdoc);
         //newDocs.push(logdoc);
@@ -141,7 +143,7 @@ syncDao.saveDocs = async (docs, user, apidb) => {
       let res = {};
       if(newDocs.length > 0)
         res = await apidb.bulk({docs: newDocs});
-      console.log(res);
+      //console.log(res);
       return res;
     }
   }
