@@ -150,7 +150,8 @@ router.post('/sendAddFriendRequest', [
     const user = req.user;
     const friend = req.friendDoc;
     const channel = 'friendrequest';
-
+    const data = req.body.data;
+    console.log(data, req.body);
     //see if this is duplicate request
     const duplicate = await channelDao.checkIfRequestAlreadySent(
         user.id, friend._id, channel, req.app.channeldb);
@@ -167,12 +168,12 @@ router.post('/sendAddFriendRequest', [
     
     await messagesDao.sendMessageToUser(friend._id, user.app,
                 messagesDao.getMsgObject(user.username, 'friendinvite', '',
-                '',{}), req.app.apidb);
+                '',data), req.app.apidb);
 
     await messagesDao.sendMessageToUser(user.id, user.app,
                 messagesDao.getMsgObject('system','event', '', 
                 'Friend invitation send', 
-                {friend: friend.username}), req.app.apidb);
+                {... data, ...{friend: friend.username}}), req.app.apidb);
 
     if(!resRequest){
       return res.status(422).json({ errors: [{
@@ -299,9 +300,11 @@ router.post('/getFriendsProgress', [
       //$FlowFixMe - will return doc, if not skip
       const gdoc = await channelDao.getDoc(gid, req.app.apidb);
       if(!gdoc) continue;
+
       users.push({
         username: social.friends[i].username,
         id: social.friends[i].id,
+        level: gdoc.state.level,
         landscape: gdoc.state.landscape
       })
     }
