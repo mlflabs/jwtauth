@@ -305,7 +305,7 @@ router.post('/getFriendsProgress', [
         username: social.friends[i].username,
         id: social.friends[i].id,
         level: gdoc.state.level,
-        landscape: gdoc.state.landscape
+        landscape: {...{trees:[]}, ...gdoc.state.landscape }
       })
     }
     
