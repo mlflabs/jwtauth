@@ -301,12 +301,17 @@ router.post('/getFriendsProgress', [
       const gdoc = await channelDao.getDoc(gid, req.app.apidb);
       if(!gdoc) continue;
 
-      users.push({
+      const p = {
         username: social.friends[i].username,
         id: social.friends[i].id,
-        level: gdoc.state.level,
+        level: gdoc.state.level | 1,
         landscape: {...{trees:[]}, ...gdoc.state.landscape }
-      })
+      };
+
+      if (!p.landscape) p.landscape = {trees:[]}
+      if(!p.landscape.trees) p.landscape.trees = [];
+
+      users.push(p)
     }
     
     return res.json(users);
