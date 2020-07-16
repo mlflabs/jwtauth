@@ -23,7 +23,7 @@
     "express": "^4.16.4",
     "express-validator": "^6.4.0",
     "jsonwebtoken": "^8.4.0",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.19",
     "moment": "^2.24.0",
     "nano": "^7.1.1",
     "path": "^0.12.7",
