@@ -24,7 +24,7 @@
     "express-validator": "^6.4.0",
     "jsonwebtoken": "^8.4.0",
     "lodash": "^4.17.15",
-    "moment": "^2.24.0",
+    "moment": "^2.29.2",
     "nano": "^7.1.1",
     "path": "^0.12.7",
     "shortid": "^2.2.15"
