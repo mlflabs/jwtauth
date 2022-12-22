@@ -22,7 +22,7 @@
     "dotenv": "^6.1.0",
     "express": "^4.16.4",
     "express-validator": "^6.4.0",
-    "jsonwebtoken": "^8.4.0",
+    "jsonwebtoken": "^9.0.0",
     "lodash": "^4.17.15",
     "moment": "^2.24.0",
     "nano": "^7.1.1",
